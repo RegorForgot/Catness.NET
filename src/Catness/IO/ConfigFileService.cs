@@ -27,8 +27,9 @@ public sealed class ConfigFileService : AbstractIOService, IConfigFileService
             ReadConfigData();
 
             Configured =
-                ConfigFile?.DiscordToken != DefaultDiscordToken &&
-                ConfigFile?.TestingGuildID != DefaultTestingGuildID;
+                ConfigFile is not null &&
+                ConfigFile.DiscordToken != DefaultDiscordToken && 
+                !ConfigFile.TestingGuildIDs.SequenceEqual(DefaultTestingGuildIDs);
             
             if (!Configured)
             {

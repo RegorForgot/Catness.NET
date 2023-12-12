@@ -8,11 +8,10 @@ public struct ConfigFileDefaults
     public const string DefaultOpenAIKey  = "YOUR_OPEN_AI_KEY";
     public const string DefaultTenorKey  = "YOUR_TENOR_AI_KEY";
     public const string DefaultMakesweetKey  = "YOUR_MAKESWEET_API_KEY";
-    public const string DefaultPrefix  = "!";
     public const ulong DefaultReportChannelID  = 1234;
     public static readonly ulong[] DefaultContributorIDs = Array.Empty<ulong>();
     public static readonly ulong[] DefaultSpecialIDs = Array.Empty<ulong>();
     public static readonly ulong[] DefaultOwnerIDs = Array.Empty<ulong>();
-    public const ulong DefaultTestingGuildID  = 0;
+    public static readonly ulong[] DefaultTestingGuildIDs = Array.Empty<ulong>();
     public static readonly string[] DefaultCatchphrases = Array.Empty<string>();
 }

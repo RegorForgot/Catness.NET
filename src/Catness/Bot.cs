@@ -23,16 +23,19 @@ public class Bot
         InteractionService interactionService = _serviceProvider.GetService<InteractionService>()!;
         IEnumerable<ILogProvider> logProviders = _serviceProvider.GetServices<ILogProvider>().ToList();
         IConfigFileService fileService = _serviceProvider.GetService<IConfigFileService>()!;
-        
+
         client.InteractionCreated += async interaction =>
         {
             SocketInteractionContext context = new SocketInteractionContext(client, interaction);
             await interactionService.ExecuteCommandAsync(context, _serviceProvider);
         };
-            
+
         client.Ready += () =>
         {
-            interactionService.RegisterCommandsToGuildAsync(fileService.ConfigFile.TestingGuildID);
+            foreach (ulong testingGuildID in fileService.ConfigFile.TestingGuildIDs)
+            {
+                interactionService.RegisterCommandsToGuildAsync(testingGuildID);
+            }
             return Task.CompletedTask;
         };
 

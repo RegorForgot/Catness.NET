@@ -15,6 +15,6 @@ public record ConfigFile
     [JsonProperty] public ulong[] ContributorIDs { get; init; } = DefaultContributorIDs;
     [JsonProperty] public ulong[] SpecialIDs { get; init; } = DefaultSpecialIDs;
     [JsonProperty] public ulong[] OwnerIDs { get; init; } = DefaultOwnerIDs;
-    [JsonProperty] public ulong TestingGuildID { get; init; } = DefaultTestingGuildID;
+    [JsonProperty] public ulong[]  TestingGuildIDs { get; init; } = DefaultTestingGuildIDs;
     [JsonProperty] public string[] Catchphrases { get; init; } = DefaultCatchphrases;
 }
