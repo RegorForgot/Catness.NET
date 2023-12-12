@@ -1,4 +1,5 @@
 ﻿using Catness.IO;
+using Catness.Services;
 using Discord.Interactions;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
@@ -21,6 +22,9 @@ public static class ServiceConfigurator
             );
 
         serviceCollection.AddSingleton<IConfigFileService, ConfigFileService>();
+
+        serviceCollection.AddSingleton<MakesweetAPIService>();
+        
         serviceCollection.AddSingleton<DiscordSocketClient>();
         serviceCollection.AddSingleton<InteractionService>();
         
