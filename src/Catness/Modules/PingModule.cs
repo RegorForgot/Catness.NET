@@ -1,4 +1,5 @@
-﻿using Catness.IO;
+﻿using Catness.Enums;
+using Catness.IO;
 using Discord;
 using Discord.Interactions;
 
@@ -14,11 +15,11 @@ public class PingModule : InteractionModuleBase
     }
     
     [SlashCommand("ping", "ping")]
-    public async Task Ping()
+    public async Task Ping(MakesweetTemplate template)
     {
         Embed embed = new EmbedBuilder
         {
-            Title = "Testing",
+            Title = template.GetMakesweetURL(),
             Description = _fileService.ConfigFile.MakesweetKey
         }.Build();
         await RespondAsync(embed:embed);
