@@ -1,4 +1,4 @@
-﻿namespace Catness.NET.Logging;
+﻿namespace Catness.Logging;
 
 public interface IConsoleLogProvider : ILogProvider
 {

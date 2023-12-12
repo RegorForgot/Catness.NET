@@ -1,10 +1,10 @@
-﻿using Catness.NET.Exceptions;
-using Catness.NET.Logging;
+﻿using Catness.Exceptions;
+using Catness.Logging;
 using Newtonsoft.Json;
 
-namespace Catness.NET.IO;
+namespace Catness.IO;
 
-public sealed class ConfigIOService : AbstractIOService
+public sealed class ConfigFileService : AbstractIOService, IConfigFileService
 {
     private IConsoleLogProvider LogProvider { get; }
     
@@ -12,7 +12,7 @@ public sealed class ConfigIOService : AbstractIOService
     public ConfigFile ConfigFile { get; set; }
     public bool Configured { get; set; }
 
-    public ConfigIOService(IConsoleLogProvider logProvider)
+    public ConfigFileService(IConsoleLogProvider logProvider)
     {
         LogProvider = logProvider;
         Configured = false;

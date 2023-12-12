@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Catness.NET", "Catness.NET\Catness.NET.csproj", "{D3377257-DDD4-4720-A745-3F6A93DDE8CE}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Catness", "Catness\Catness.csproj", "{D3377257-DDD4-4720-A745-3F6A93DDE8CE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

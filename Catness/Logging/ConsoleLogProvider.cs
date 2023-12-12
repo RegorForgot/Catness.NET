@@ -1,6 +1,6 @@
 ﻿using Discord;
 
-namespace Catness.NET.Logging;
+namespace Catness.Logging;
 
 public class ConsoleLogProvider : IConsoleLogProvider
 {

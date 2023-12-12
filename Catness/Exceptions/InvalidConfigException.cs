@@ -1,4 +1,4 @@
-﻿namespace Catness.NET.Exceptions;
+﻿namespace Catness.Exceptions;
 
 public class InvalidConfigException : Exception
 {

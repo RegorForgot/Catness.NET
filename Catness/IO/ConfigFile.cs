@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace Catness.NET.IO;
+namespace Catness.IO;
 
 public record ConfigFile
 {
