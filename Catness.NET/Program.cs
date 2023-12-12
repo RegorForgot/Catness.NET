@@ -1,4 +1,5 @@
 ﻿using Autofac;
+using Discord.Commands;
 
 namespace Catness.NET;
 
