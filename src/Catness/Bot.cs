@@ -24,17 +24,28 @@ public class Bot
         IEnumerable<ILogProvider> logProviders = _serviceProvider.GetServices<ILogProvider>().ToList();
         IConfigFileService fileService = _serviceProvider.GetService<IConfigFileService>()!;
         
-        
+        client.InteractionCreated += async interaction =>
+        {
+            SocketInteractionContext context = new SocketInteractionContext(client, interaction);
+            await interactionService.ExecuteCommandAsync(context, _serviceProvider);
+        };
+            
+        client.Ready += () =>
+        {
+            interactionService.RegisterCommandsToGuildAsync(fileService.ConfigFile.TestingGuildID);
+            return Task.CompletedTask;
+        };
+
         foreach (ILogProvider logProvider in logProviders)
         {
             client.Log += logProvider.Log;
         }
-        
-        await interactionService.AddModulesAsync(Assembly.GetExecutingAssembly(), _serviceProvider);
-        
+
         if (fileService.Configured)
         {
             await client.LoginAsync(TokenType.Bot, fileService.ConfigFile.DiscordToken);
+            await interactionService.AddModulesAsync(Assembly.GetExecutingAssembly(), _serviceProvider);
+
             await client.StartAsync();
             await Task.Delay(Timeout.Infinite);
         }

@@ -1,6 +1,7 @@
 ﻿using Catness.Exceptions;
 using Catness.Logging;
 using Newtonsoft.Json;
+using static Catness.IO.ConfigFileDefaults;
 
 namespace Catness.IO;
 
@@ -21,9 +22,19 @@ public sealed class ConfigFileService : AbstractIOService, IConfigFileService
         {
             CreateFile();
         }
-        
-        ReadConfigData();
-        Configured = ConfigFile?.DiscordToken != new ConfigFile().DiscordToken;
+        else
+        {
+            ReadConfigData();
+
+            Configured =
+                ConfigFile?.DiscordToken != DefaultDiscordToken &&
+                ConfigFile?.TestingGuildID != DefaultTestingGuildID;
+            
+            if (!Configured)
+            {
+                CreateFile();
+            }
+        }
     }
 
     private void ReadConfigData()
