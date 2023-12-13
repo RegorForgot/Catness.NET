@@ -1,9 +1,11 @@
 ﻿using Catness.IO;
+using Catness.Persistence;
 using Catness.Persistence.Models;
 using Catness.Services;
 using Discord;
 using Discord.Interactions;
 using Discord.WebSocket;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Scrutor;
@@ -65,6 +67,9 @@ public class Bot
         serviceCollection.AddSingleton<DiscordSocketClient>();
         serviceCollection.AddSingleton<InteractionService>();
         serviceCollection.AddSingleton<BotService>();
+
+        serviceCollection.AddDbContextFactory<CatnessDbContext>(optionsBuilder => 
+            optionsBuilder.UseNpgsql(Configuration["DatabaseConfiguration:ConnectionString"]));
 
         return serviceCollection.BuildServiceProvider();
     }

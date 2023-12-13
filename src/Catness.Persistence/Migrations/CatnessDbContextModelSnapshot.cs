@@ -24,11 +24,9 @@ namespace Catness.Persistence.Migrations
 
             modelBuilder.Entity("Catness.Persistence.Models.User", b =>
                 {
-                    b.Property<long>("Id")
+                    b.Property<decimal>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+                        .HasColumnType("numeric(20,0)");
 
                     b.Property<DateTimeOffset?>("Birthday")
                         .HasColumnType("timestamp with time zone");

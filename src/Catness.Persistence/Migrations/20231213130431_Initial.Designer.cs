@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Catness.Persistence.Migrations
 {
     [DbContext(typeof(CatnessDbContext))]
-    [Migration("20231213111631_Initial")]
+    [Migration("20231213130431_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -27,11 +27,9 @@ namespace Catness.Persistence.Migrations
 
             modelBuilder.Entity("Catness.Persistence.Models.User", b =>
                 {
-                    b.Property<long>("Id")
+                    b.Property<decimal>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+                        .HasColumnType("numeric(20,0)");
 
                     b.Property<DateTimeOffset?>("Birthday")
                         .HasColumnType("timestamp with time zone");
