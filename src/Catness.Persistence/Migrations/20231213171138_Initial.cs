@@ -16,7 +16,7 @@ namespace Catness.Persistence.Migrations
                 columns: table => new
                 {
                     Id = table.Column<decimal>(type: "numeric(20,0)", nullable: false),
-                    Birthday = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true)
+                    Birthday = table.Column<DateOnly>(type: "date", nullable: true)
                 },
                 constraints: table =>
                 {

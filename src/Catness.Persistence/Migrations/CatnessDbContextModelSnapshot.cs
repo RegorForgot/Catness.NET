@@ -28,8 +28,8 @@ namespace Catness.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("numeric(20,0)");
 
-                    b.Property<DateTimeOffset?>("Birthday")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<DateOnly?>("Birthday")
+                        .HasColumnType("date");
 
                     b.HasKey("Id");
 

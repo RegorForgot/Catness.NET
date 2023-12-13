@@ -1,4 +1,4 @@
-﻿using System.Text;
+﻿using Catness.Enums;
 using Catness.Persistence;
 using Catness.Persistence.Models;
 using Discord;
@@ -17,30 +17,49 @@ public class UserCommandsModule : InteractionModuleBase
         _dbContextFactory = dbContextFactory;
     }
 
-    [SlashCommand("birthday-set", "set your birthday")]
-    public async Task SetBirthday(DateTime time)
+    [SlashCommand("birthday-set", "Set your birthday")]
+    public async Task SetBirthday(
+        [ComplexParameter] BirthdayType birthday)
     {
+        DateOnly date;
+
+        try
+        {
+            date = birthday.GetDate();
+        }
+        catch (ArgumentOutOfRangeException ex)
+        {
+            await RespondAsync($"Error! {ex.Message}");
+            return;
+        }
+
         await using CatnessDbContext dbContext = await _dbContextFactory.CreateDbContextAsync();
 
         User? user = dbContext.Users.FirstOrDefault(user => user.Id == Context.User.Id);
+
         if (user is null)
         {
             await dbContext.Users.AddAsync(new User
             {
-                Birthday = new DateTimeOffset(time, TimeSpan.Zero),
+                Birthday = date,
                 Id = Context.User.Id
             });
+
             await dbContext.SaveChangesAsync();
-            await RespondAsync("Added birthday as " + dbContext.Users.FirstOrDefault(user => user.Id == Context.User.Id)!.Birthday);
+            await RespondAsync($"Added birthday as {date}");
+        }
+        else if (user.Birthday == date)
+        {
+            await RespondAsync($"Birthday provided is equal, not removing birthday");
         }
         else
         {
-            StringBuilder sb = new StringBuilder($"Old birthday was {user.Birthday}; ");
-            user.Birthday = new DateTimeOffset(time, TimeSpan.Zero);
+            string responseString = $"Old birthday was {user.Birthday}; New birthday is {date}";
+            
+            user.Birthday = date;
             await dbContext.SaveChangesAsync();
-
-            sb.Append($"New birthday is {dbContext.Users.FirstOrDefault(user => user.Id == Context.User.Id)!.Birthday}");
-            await RespondAsync(sb.ToString());
+            
+            await RespondAsync(responseString);
         }
     }
 
@@ -74,7 +93,7 @@ public class UserCommandsModule : InteractionModuleBase
             Title = $"{user.Username}'s avatar",
             ImageUrl = imageUrl
         }.Build();
-        
+
         await RespondAsync(embed: embed, ephemeral: ephemeral);
     }
 }
