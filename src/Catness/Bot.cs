@@ -1,66 +1,71 @@
-﻿using System.Reflection;
-using Catness.IO;
-using Catness.Logging;
+﻿using Catness.IO;
+using Catness.Persistence.Models;
+using Catness.Services;
 using Discord;
 using Discord.Interactions;
 using Discord.WebSocket;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Scrutor;
 
 namespace Catness;
 
 public class Bot
 {
-    private readonly IServiceProvider _serviceProvider;
+    public IConfiguration Configuration { get; }
 
-    public Bot(IServiceProvider serviceProvider)
+    private Bot()
     {
-        _serviceProvider = serviceProvider;
+        BotConfiguration configuration = ConfigurationFactory.Data;
+        
+        IConfigurationBuilder configurationBuilder = new ConfigurationBuilder()
+            .SetBasePath(Directory.GetCurrentDirectory())
+            .AddJsonFile("config.json", true, true);
+
+        Configuration = configurationBuilder.Build();
     }
 
-    public async Task MainAsync()
+    public async static Task StartBot(string[] args)
     {
-        DiscordSocketClient client = _serviceProvider.GetService<DiscordSocketClient>()!;
-        InteractionService interactionService = _serviceProvider.GetService<InteractionService>()!;
-        IEnumerable<ILogProvider> logProviders = _serviceProvider.GetServices<ILogProvider>().ToList();
-        IConfigFileService fileService = _serviceProvider.GetService<IConfigFileService>()!;
+        Bot bot = new Bot();
+        await bot.MainAsync();
+    }
 
-        client.InteractionCreated += async interaction =>
+    private async Task MainAsync()
+    {
+        IServiceProvider serviceProvider = CreateServiceProvider();
+        await serviceProvider.GetService<BotService>()!.StartAsync();
+        
+        await Task.Delay(Timeout.Infinite);
+    }
+
+    public IServiceProvider CreateServiceProvider()
+    {
+        IServiceCollection serviceCollection = new ServiceCollection()
+            .Configure<BotConfiguration>(Configuration);
+
+        serviceCollection.Scan(scan => scan
+            .FromAssemblyOf<Bot>()
+            .AddClasses(classes => classes.InNamespaces("Catness.Logging"))
+            .UsingRegistrationStrategy(RegistrationStrategy.Append)
+            .AsSelfWithInterfaces()
+            .WithSingletonLifetime()
+        );
+
+        DiscordSocketConfig config = new DiscordSocketConfig
         {
-            SocketInteractionContext context = new SocketInteractionContext(client, interaction);
-            await interactionService.ExecuteCommandAsync(context, _serviceProvider);
+            GatewayIntents =
+                GatewayIntents.AllUnprivileged &
+                ~GatewayIntents.GuildScheduledEvents &
+                ~GatewayIntents.GuildInvites
         };
 
-        client.Ready += () =>
-        {
-            foreach (ulong testingGuildID in fileService.ConfigFile.TestingGuildIDs)
-            {
-                interactionService.RegisterCommandsToGuildAsync(testingGuildID);
-            }
-            return Task.CompletedTask;
-        };
+        serviceCollection.AddSingleton<MakesweetAPIService>();
+        serviceCollection.AddSingleton(config);
+        serviceCollection.AddSingleton<DiscordSocketClient>();
+        serviceCollection.AddSingleton<InteractionService>();
+        serviceCollection.AddSingleton<BotService>();
 
-        foreach (ILogProvider logProvider in logProviders)
-        {
-            client.Log += logProvider.Log;
-        }
-
-        if (fileService.Configured)
-        {
-            await client.LoginAsync(TokenType.Bot, fileService.ConfigFile.DiscordToken);
-            await interactionService.AddModulesAsync(Assembly.GetExecutingAssembly(), _serviceProvider);
-
-            await client.StartAsync();
-            await Task.Delay(Timeout.Infinite);
-        }
-        else
-        {
-            foreach (ILogProvider provider in logProviders)
-            {
-                if (provider is IConsoleLogProvider consoleProvider)
-                {
-                    await consoleProvider.Log("Please ensure your details are entered in the configuration file");
-                }
-            }
-        }
+        return serviceCollection.BuildServiceProvider();
     }
 }

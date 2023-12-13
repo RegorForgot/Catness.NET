@@ -1,19 +1,20 @@
 ﻿using Catness.Enums;
-using Catness.IO;
+using Catness.Persistence.Models;
 using Catness.Services;
 using Discord;
 using Discord.Interactions;
+using Microsoft.Extensions.Options;
 
 namespace Catness.Modules.Fun;
 
 public class MakesweetModule : InteractionModuleBase
 {
-    private readonly IConfigFileService _fileService;
+    private readonly BotConfiguration _configuration;
     private readonly MakesweetAPIService _makesweetAPIService;
 
-    public MakesweetModule(IConfigFileService fileService, MakesweetAPIService makesweetAPIService)
+    public MakesweetModule(IOptions<BotConfiguration> configuration, MakesweetAPIService makesweetAPIService)
     {
-        _fileService = fileService;
+        _configuration = configuration.Value;
         _makesweetAPIService = makesweetAPIService;
     }
     
@@ -23,7 +24,7 @@ public class MakesweetModule : InteractionModuleBase
         Embed embed = new EmbedBuilder
         {
             Title = template.GetMakesweetURL(),
-            Description = _fileService.ConfigFile.MakesweetKey,
+            Description = _configuration.APIKeys.MakesweetKey,
             ImageUrl = attachment.Url
         }.Build();
         await RespondAsync(embed:embed);

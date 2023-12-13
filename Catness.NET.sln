@@ -2,6 +2,8 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Catness", "src\Catness\Catness.csproj", "{D3377257-DDD4-4720-A745-3F6A93DDE8CE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Catness.Persistence", "src\Catness.Persistence\Catness.Persistence.csproj", "{81476D05-9A8E-47F7-B926-705A94756E98}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +14,9 @@ Global
 		{D3377257-DDD4-4720-A745-3F6A93DDE8CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D3377257-DDD4-4720-A745-3F6A93DDE8CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D3377257-DDD4-4720-A745-3F6A93DDE8CE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{81476D05-9A8E-47F7-B926-705A94756E98}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{81476D05-9A8E-47F7-B926-705A94756E98}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{81476D05-9A8E-47F7-B926-705A94756E98}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{81476D05-9A8E-47F7-B926-705A94756E98}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
