@@ -69,6 +69,7 @@ public class UserHandler
 
         user.Experience++;
         await _userService.UpdateUser(user);
+        _cache.Set(key, new object(), TimeSpan.FromSeconds(5));
     }
 
     public static string GetUserCooldownCacheKey(ulong userId)
