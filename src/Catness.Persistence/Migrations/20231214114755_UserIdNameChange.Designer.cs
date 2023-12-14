@@ -3,6 +3,7 @@ using System;
 using Catness.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Catness.Persistence.Migrations
 {
     [DbContext(typeof(CatnessDbContext))]
-    partial class CatnessDbContextModelSnapshot : ModelSnapshot
+    [Migration("20231214114755_UserIdNameChange")]
+    partial class UserIdNameChange
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -37,35 +40,6 @@ namespace Catness.Persistence.Migrations
                     b.ToTable("Follows");
                 });
 
-            modelBuilder.Entity("Catness.Persistence.Models.Guild", b =>
-                {
-                    b.Property<decimal>("GuildId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("numeric(20,0)");
-
-                    b.Property<bool>("LevellingEnabled")
-                        .HasColumnType("boolean");
-
-                    b.HasKey("GuildId");
-
-                    b.ToTable("Guilds");
-                });
-
-            modelBuilder.Entity("Catness.Persistence.Models.GuildUser", b =>
-                {
-                    b.Property<decimal>("GuildId")
-                        .HasColumnType("numeric(20,0)");
-
-                    b.Property<decimal>("UserId")
-                        .HasColumnType("numeric(20,0)");
-
-                    b.HasKey("GuildId", "UserId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("GuildUsers");
-                });
-
             modelBuilder.Entity("Catness.Persistence.Models.User", b =>
                 {
                     b.Property<decimal>("UserId")
@@ -74,15 +48,6 @@ namespace Catness.Persistence.Migrations
 
                     b.Property<DateOnly?>("Birthday")
                         .HasColumnType("date");
-
-                    b.Property<decimal>("Experience")
-                        .HasColumnType("numeric(20,0)");
-
-                    b.Property<decimal>("Level")
-                        .HasColumnType("numeric(20,0)");
-
-                    b.Property<bool>("LevellingEnabled")
-                        .HasColumnType("boolean");
 
                     b.HasKey("UserId");
 
@@ -108,37 +73,11 @@ namespace Catness.Persistence.Migrations
                     b.Navigation("Follower");
                 });
 
-            modelBuilder.Entity("Catness.Persistence.Models.GuildUser", b =>
-                {
-                    b.HasOne("Catness.Persistence.Models.Guild", "Guild")
-                        .WithMany("Users")
-                        .HasForeignKey("GuildId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Catness.Persistence.Models.User", "User")
-                        .WithMany("Guilds")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Guild");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("Catness.Persistence.Models.Guild", b =>
-                {
-                    b.Navigation("Users");
-                });
-
             modelBuilder.Entity("Catness.Persistence.Models.User", b =>
                 {
                     b.Navigation("Followers");
 
                     b.Navigation("Following");
-
-                    b.Navigation("Guilds");
                 });
 #pragma warning restore 612, 618
         }

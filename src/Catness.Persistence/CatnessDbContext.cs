@@ -6,7 +6,12 @@ namespace Catness.Persistence;
 public class CatnessDbContext : DbContext
 {
     public DbSet<User> Users { get; set; }
-    
+    public DbSet<Guild> Guilds { get; set; }
+
+    public DbSet<GuildUser> GuildUsers { get; set; }
+
+    public DbSet<Follow> Follows { get; set; }
+
     public CatnessDbContext() { }
 
     public CatnessDbContext(DbContextOptions<CatnessDbContext> options)
@@ -22,7 +27,39 @@ public class CatnessDbContext : DbContext
     {
         modelBuilder.Entity<User>(user =>
         {
-            user.HasKey(userEntity => userEntity.Id);
+            user.HasKey(userEntity => userEntity.UserId);
+        });
+
+        modelBuilder.Entity<Follow>(follow =>
+        {
+            follow.HasKey(f => new
+            {
+                f.FollowerId,
+                f.FollowedId
+            });
+
+            follow.HasOne(f => f.Follower)
+                .WithMany(f => f.Following)
+                .HasForeignKey(f => f.FollowerId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            follow.HasOne(f => f.Followed)
+                .WithMany(f => f.Followers)
+                .HasForeignKey(f => f.FollowedId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<GuildUser>(gu =>
+        {
+            gu.HasKey(g => new
+            {
+                g.GuildId,
+                g.UserId
+            });
+
+            gu.HasOne(g => g.User).WithMany(g => g.Guilds).HasForeignKey(g => g.UserId).OnDelete(DeleteBehavior.Cascade);
+
+            gu.HasOne(g => g.Guild).WithMany(g => g.Users).HasForeignKey(g => g.GuildId).OnDelete(DeleteBehavior.Cascade);
         });
     }
 }
