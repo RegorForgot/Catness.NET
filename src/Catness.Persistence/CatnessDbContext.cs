@@ -5,12 +5,12 @@ namespace Catness.Persistence;
 
 public class CatnessDbContext : DbContext
 {
-    public DbSet<User> Users { get; set; }
-    public DbSet<Guild> Guilds { get; set; }
+    public virtual DbSet<User> Users { get; set; }
+    public virtual DbSet<Guild> Guilds { get; set; }
 
-    public DbSet<GuildUser> GuildUsers { get; set; }
+    public virtual DbSet<GuildUser> GuildUsers { get; set; }
 
-    public DbSet<Follow> Follows { get; set; }
+    public virtual DbSet<Follow> Follows { get; set; }
 
     public CatnessDbContext() { }
 

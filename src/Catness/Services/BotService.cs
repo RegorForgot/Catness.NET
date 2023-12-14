@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using Catness.Handlers;
 using Catness.Logging;
 using Catness.Persistence.Models;
 using Discord;
@@ -12,6 +13,7 @@ public class BotService
 {
     private readonly DiscordSocketClient _discordSocketClient;
     private readonly InteractionService _interactionService;
+    private readonly UserHandler _userHandler;
     private readonly IServiceProvider _serviceProvider;
     private readonly IEnumerable<ILogProvider> _logProviders;
     private readonly BotConfiguration _botConfiguration;
@@ -21,15 +23,17 @@ public class BotService
         InteractionService interactionService,
         IServiceProvider serviceProvider,
         IEnumerable<ILogProvider> logProviders,
-        IOptions<BotConfiguration> botConfiguration)
+        IOptions<BotConfiguration> botConfiguration,
+        UserHandler userHandler)
     {
         _discordSocketClient = discordSocketClient;
         _interactionService = interactionService;
         _serviceProvider = serviceProvider;
         _logProviders = logProviders;
+        _userHandler = userHandler;
         _botConfiguration = botConfiguration.Value;
     }
-    
+
     public async Task StartAsync()
     {
         _discordSocketClient.InteractionCreated += async interaction =>
@@ -37,6 +41,9 @@ public class BotService
             SocketInteractionContext context = new SocketInteractionContext(_discordSocketClient, interaction);
             await _interactionService.ExecuteCommandAsync(context, _serviceProvider);
         };
+
+        _discordSocketClient.MessageReceived += message =>
+            _userHandler.HandleLevellingAsync(message);
 
         _discordSocketClient.Ready += () =>
         {

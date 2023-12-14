@@ -1,7 +1,9 @@
-﻿using Catness.IO;
+﻿using Catness.Handlers;
+using Catness.IO;
 using Catness.Persistence;
 using Catness.Persistence.Models;
 using Catness.Services;
+using Catness.Services.EFServices;
 using Discord;
 using Discord.Interactions;
 using Discord.WebSocket;
@@ -14,12 +16,12 @@ namespace Catness;
 
 public class Bot
 {
-    public IConfiguration Configuration { get; }
+    private IConfiguration Configuration { get; }
 
     private Bot()
     {
         BotConfiguration configuration = ConfigurationFactory.Data;
-        
+
         IConfigurationBuilder configurationBuilder = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
             .AddJsonFile("config.json", true, true);
@@ -37,11 +39,11 @@ public class Bot
     {
         IServiceProvider serviceProvider = CreateServiceProvider();
         await serviceProvider.GetService<BotService>()!.StartAsync();
-        
+
         await Task.Delay(Timeout.Infinite);
     }
 
-    public IServiceProvider CreateServiceProvider()
+    private ServiceProvider CreateServiceProvider()
     {
         IServiceCollection serviceCollection = new ServiceCollection()
             .Configure<BotConfiguration>(Configuration);
@@ -62,15 +64,24 @@ public class Bot
                 ~GatewayIntents.GuildInvites
         };
 
-        serviceCollection.AddSingleton<MakesweetAPIService>();
-        serviceCollection.AddSingleton(config);
-        serviceCollection.AddSingleton<DiscordSocketClient>();
+        DiscordSocketClient client = new DiscordSocketClient(config);
+
+        serviceCollection
+            .AddSingleton<MakesweetAPIService>()
+            .AddSingleton<GuildService>()
+            .AddSingleton<FollowService>()
+            .AddSingleton<UserService>()
+            .AddSingleton<UserHandler>()
+            .AddSingleton<BotHandler>();
+        serviceCollection.AddSingleton(client);
         serviceCollection.AddSingleton<InteractionService>();
         serviceCollection.AddSingleton<BotService>();
 
-        serviceCollection.AddDbContextFactory<CatnessDbContext>(optionsBuilder => 
+        serviceCollection.AddDbContextFactory<CatnessDbContext>(optionsBuilder =>
             optionsBuilder.UseNpgsql(Configuration["DatabaseConfiguration:ConnectionString"]));
 
+        serviceCollection.AddMemoryCache();
+        
         return serviceCollection.BuildServiceProvider();
     }
 }

@@ -3,6 +3,7 @@ using System;
 using Catness.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Catness.Persistence.Migrations
 {
     [DbContext(typeof(CatnessDbContext))]
-    partial class CatnessDbContextModelSnapshot : ModelSnapshot
+    [Migration("20231214181631_AddSocialFields")]
+    partial class AddSocialFields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -58,9 +61,6 @@ namespace Catness.Persistence.Migrations
 
                     b.Property<decimal>("UserId")
                         .HasColumnType("numeric(20,0)");
-
-                    b.Property<bool>("IsLevelBlacklisted")
-                        .HasColumnType("boolean");
 
                     b.HasKey("GuildId", "UserId");
 

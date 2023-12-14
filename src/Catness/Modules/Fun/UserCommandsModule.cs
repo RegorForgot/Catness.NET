@@ -1,69 +1,23 @@
-﻿using Catness.Enums;
-using Catness.Persistence;
-using Catness.Persistence.Models;
+﻿using Catness.Persistence.Models;
+using Catness.Services.EFServices;
 using Discord;
 using Discord.Interactions;
-using Microsoft.EntityFrameworkCore;
 
 namespace Catness.Modules.Fun;
 
 [Group("user", "User commands")]
 public class UserCommandsModule : InteractionModuleBase
 {
-    private readonly IDbContextFactory<CatnessDbContext> _dbContextFactory;
+    private readonly UserService _userService;
+    private readonly FollowService _followService;
 
-    public UserCommandsModule(
-        IDbContextFactory<CatnessDbContext> dbContextFactory)
+    public UserCommandsModule(UserService userService,
+        FollowService followService)
     {
-        _dbContextFactory = dbContextFactory;
+        _userService = userService;
+        _followService = followService;
     }
-
-    [SlashCommand("birthday-set", "Set your birthday")]
-    public async Task SetBirthday(
-        [ComplexParameter] BirthdayType birthday)
-    {
-        DateOnly date;
-
-        try
-        {
-            date = birthday.GetDate();
-        }
-        catch (ArgumentOutOfRangeException ex)
-        {
-            await RespondAsync($"Error! {ex.Message}");
-            return;
-        }
-
-        await using CatnessDbContext dbContext = await _dbContextFactory.CreateDbContextAsync();
-
-        User? user = dbContext.Users.FirstOrDefault(user => user.UserId == Context.User.Id);
-
-        if (user is null)
-        {
-            await dbContext.Users.AddAsync(new User
-            {
-                Birthday = date,
-                UserId = Context.User.Id
-            });
-
-            await dbContext.SaveChangesAsync();
-            await RespondAsync($"Added birthday as {date}");
-        }
-        else if (user.Birthday == date)
-        {
-            await RespondAsync($"Birthday provided is equal, not removing birthday");
-        }
-        else
-        {
-            string responseString = $"Old birthday was {user.Birthday}; New birthday is {date}";
-
-            user.Birthday = date;
-            await dbContext.SaveChangesAsync();
-
-            await RespondAsync(responseString);
-        }
-    }
-
+    
     [SlashCommand("avatar", "Get a user's avatar")]
     public async Task GetAvatar(
         [Summary(description: "User to get the avatar for")]
@@ -73,10 +27,7 @@ public class UserCommandsModule : InteractionModuleBase
         [Summary(description: "Whether the embed response should be private ")]
         bool ephemeral = false)
     {
-        if (user is null)
-        {
-            user = Context.User;
-        }
+        user ??= Context.User;
 
         string imageUrl;
 
@@ -97,7 +48,7 @@ public class UserCommandsModule : InteractionModuleBase
 
         await RespondAsync(embed: embed, ephemeral: ephemeral);
     }
-    
+
     [SlashCommand("follow", "Follow another user")]
     public async Task FollowUser(
         [Summary(description: "User to follow")]
@@ -106,37 +57,22 @@ public class UserCommandsModule : InteractionModuleBase
         if (user == Context.User)
         {
             await RespondAsync("You cannot follow yourself!", ephemeral: true);
+            return;
         }
-        else if (user is ISelfUser)
+
+        if (user is ISelfUser)
         {
             await RespondAsync("You cannot follow me", ephemeral: true);
+            return;
         }
 
-        await using CatnessDbContext dbContext = await _dbContextFactory.CreateDbContextAsync();
-
-        User? followed = dbContext.Users.FirstOrDefault(userDb => userDb.UserId == user.Id);
-
-        if (followed is null)
-        {
-            await dbContext.Users.AddAsync(new User
-            {
-                UserId = user.Id
-            });
-            await dbContext.SaveChangesAsync();
-        }
-
-        Follow? follow = dbContext.Follows.FirstOrDefault(follow =>
-            follow.FollowerId == Context.User.Id && follow.FollowedId == user.Id);
+        _ = await _userService.GetOrAddUser(user.Id);
+        Follow? follow = await _followService.GetFollow(Context.User.Id, user.Id);
 
         if (follow is null)
         {
-            await dbContext.Follows.AddAsync(new Follow
-            {
-                FollowedId = user.Id,
-                FollowerId = Context.User.Id
-            });
+            await _followService.AddFollow(Context.User.Id, user.Id);
             await RespondAsync($"Started following <@{user.Id}>!", allowedMentions: new AllowedMentions(AllowedMentionTypes.Users));
-            await dbContext.SaveChangesAsync();
         }
         else
         {

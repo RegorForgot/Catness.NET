@@ -4,6 +4,9 @@ public class User
 {
     public ulong UserId { get; set; }
 
+    public string? LastfmUsername { get; set; }
+    public string? SteamVanity { get; set; }
+    
     public DateOnly? Birthday { get; set; }
     
     public ulong Experience { get; set; }
