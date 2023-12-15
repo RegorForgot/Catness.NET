@@ -5,7 +5,8 @@ public class Reminder
     public ulong ReminderId { get; set; }
     public string Body { get; set; }
     public bool PrivateReminder { get; set; }
-    public bool Reminded { get; set; }
+
+    public RemindedType Reminded { get; set; } = RemindedType.None;
     
     public ulong ChannelId { get; set; }
     

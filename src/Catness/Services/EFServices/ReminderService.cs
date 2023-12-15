@@ -1,4 +1,5 @@
-﻿using Catness.Persistence;
+﻿using Catness.Enums;
+using Catness.Persistence;
 using Catness.Persistence.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -19,7 +20,7 @@ public class ReminderService
         await using CatnessDbContext dbContext = await _dbContextFactory.CreateDbContextAsync();
 
         return await dbContext.Reminders
-            .Where(reminder => reminder.ReminderTime - DateTimeOffset.Now < TimeSpan.FromMinutes(10) && !reminder.Reminded)
+            .Where(reminder => reminder.ReminderTime - DateTimeOffset.Now < TimeSpan.FromMinutes(10) && reminder.Reminded == RemindedType.None)
             .ToListAsync();
     }
 
@@ -40,5 +41,14 @@ public class ReminderService
         await dbContext.Reminders.AddAsync(reminder);
         await dbContext.SaveChangesAsync();
         return reminder.ReminderId;
+    }
+    
+    
+    public async Task UpdateReminder(Reminder reminder)
+    {
+        await using CatnessDbContext context = await _dbContextFactory.CreateDbContextAsync();
+
+        context.Reminders.Update(reminder);
+        await context.SaveChangesAsync();
     }
 }
