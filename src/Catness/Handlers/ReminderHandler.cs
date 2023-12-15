@@ -1,35 +1,41 @@
-﻿using Catness.Enums;
-using Catness.Persistence.Models;
+﻿using Catness.Persistence.Models;
 using Catness.Services.EFServices;
+using Discord;
+using Discord.Net;
+using Discord.WebSocket;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace Catness.Handlers;
 
 public class ReminderHandler
 {
+    private readonly DiscordSocketClient _client;
     private readonly ReminderService _reminderService;
     private readonly IMemoryCache _memoryCache;
 
     public ReminderHandler(
+        DiscordSocketClient client,
         ReminderService reminderService,
         IMemoryCache memoryCache)
     {
+        _client = client;
         _reminderService = reminderService;
         _memoryCache = memoryCache;
     }
 
-    public async Task PrepareExpiry()
+    public async Task PrepareExpiry(CancellationToken token)
     {
         IEnumerable<Reminder> reminders = await _reminderService.GetUpcomingActiveReminders();
 
         ParallelOptions options = new ParallelOptions
         {
-            MaxDegreeOfParallelism = 50
+            MaxDegreeOfParallelism = 50,
+            CancellationToken = token
         };
 
         await Parallel.ForEachAsync(reminders, options, (reminder, _) =>
         {
-            Task.Run(() => ConsumeReminder(reminder), CancellationToken.None);
+            Task.Run(() => ConsumeReminder(reminder), token);
             return ValueTask.CompletedTask;
         }).ConfigureAwait(false);
     }
@@ -73,7 +79,38 @@ public class ReminderHandler
         await _reminderService.UpdateReminder(reminder);
     }
 
-    private async Task SendReminder(Reminder reminder) { }
+    private async Task SendReminder(Reminder reminder)
+    {
+        Embed embed = new EmbedBuilder()
+            .WithTitle($"Reminder <@{reminder.UserId}!")
+            .WithDescription(reminder.Body)
+            .WithCurrentTimestamp()
+            .Build();
+
+        if (reminder.PrivateReminder)
+        {
+            if (_client.GetUser(reminder.UserId) is IUser user)
+            {
+                try
+                {
+                    await user.SendMessageAsync(embed: embed, allowedMentions: new AllowedMentions(AllowedMentionTypes.Users));
+                }
+                catch (HttpException) { }
+            }
+        }
+        else
+        {
+            if (_client.GetChannel(reminder.ChannelId) is ITextChannel channel)
+            {
+
+                try
+                {
+                    await channel.SendMessageAsync(embed: embed, allowedMentions: new AllowedMentions(AllowedMentionTypes.Users));
+                }
+                catch (HttpException) { }
+            }
+        }
+    }
 
     public async Task StopReminding(Reminder reminder)
     {

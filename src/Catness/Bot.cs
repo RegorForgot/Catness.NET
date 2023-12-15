@@ -71,8 +71,10 @@ public class Bot
             .AddSingleton<GuildService>()
             .AddSingleton<FollowService>()
             .AddSingleton<UserService>()
+            .AddSingleton<ReminderService>()
             .AddSingleton<UserHandler>()
-            .AddSingleton<BotHandler>();
+            .AddSingleton<BotHandler>()
+            .AddSingleton<ReminderHandler>();
         serviceCollection.AddSingleton(client);
         serviceCollection.AddSingleton<InteractionService>();
         serviceCollection.AddSingleton<BotService>();

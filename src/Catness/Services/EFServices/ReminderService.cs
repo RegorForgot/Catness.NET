@@ -1,5 +1,4 @@
-﻿using Catness.Enums;
-using Catness.Persistence;
+﻿using Catness.Persistence;
 using Catness.Persistence.Models;
 using Microsoft.EntityFrameworkCore;
 
