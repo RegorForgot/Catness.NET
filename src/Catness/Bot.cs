@@ -20,7 +20,7 @@ public class Bot
 
     private Bot()
     {
-        BotConfiguration configuration = ConfigurationFactory.Data;
+        _ = ConfigurationFactory.Data;
 
         IConfigurationBuilder configurationBuilder = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
