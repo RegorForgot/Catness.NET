@@ -33,13 +33,13 @@ public class ReminderService
             .ToListAsync();
     }
 
-    public async Task<ulong> AddReminder(Reminder reminder)
+    public async Task<Guid> AddReminder(Reminder reminder)
     {
         await using CatnessDbContext dbContext = await _dbContextFactory.CreateDbContextAsync();
 
         await dbContext.Reminders.AddAsync(reminder);
         await dbContext.SaveChangesAsync();
-        return reminder.ReminderId;
+        return reminder.ReminderGuid;
     }
     
     

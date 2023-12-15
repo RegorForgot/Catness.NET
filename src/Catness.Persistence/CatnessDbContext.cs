@@ -68,8 +68,7 @@ public class CatnessDbContext : DbContext
 
         modelBuilder.Entity<Reminder>(reminder =>
             {
-                reminder.HasKey(r => r.ReminderId);
-                reminder.Property(r => r.ReminderId).ValueGeneratedOnAdd();
+                reminder.HasKey(r => r.ReminderGuid);
 
                 reminder.HasOne(r => r.User).WithMany(u => u.Reminders).OnDelete(DeleteBehavior.Cascade);
             }

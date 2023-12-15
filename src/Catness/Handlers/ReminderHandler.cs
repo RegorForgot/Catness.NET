@@ -42,7 +42,7 @@ public class ReminderHandler
 
     private async Task ConsumeReminder(Reminder reminder)
     {
-        string key = GetCancellationTokenCacheKey(reminder.ReminderId);
+        string key = GetCancellationTokenCacheKey(reminder.ReminderGuid);
 
         bool reminding = _memoryCache.TryGetValue(key, out _);
 
@@ -100,7 +100,7 @@ public class ReminderHandler
         }
         else
         {
-            if (_client.GetChannel(reminder.ChannelId) is ITextChannel channel)
+            if (_client.GetChannel(reminder.ChannelId ?? 0) is ITextChannel channel)
             {
 
                 try
@@ -119,7 +119,7 @@ public class ReminderHandler
             return;
         }
 
-        string key = GetCancellationTokenCacheKey(reminder.ReminderId);
+        string key = GetCancellationTokenCacheKey(reminder.ReminderGuid);
         bool reminding = _memoryCache.TryGetValue(key, out CancellationTokenSource? cancellationToken);
 
         if (!reminding)
@@ -133,7 +133,7 @@ public class ReminderHandler
         }
     }
 
-    public static string GetCancellationTokenCacheKey(ulong reminderId)
+    public static string GetCancellationTokenCacheKey(Guid reminderId)
     {
         return $"reminder-token-{reminderId}";
     }
