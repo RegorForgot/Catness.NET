@@ -11,6 +11,7 @@ public class CatnessDbContext : DbContext
     public virtual DbSet<GuildUser> GuildUsers { get; set; }
 
     public virtual DbSet<Follow> Follows { get; set; }
+    public virtual DbSet<Reminder> Reminders { get; set; }
 
     public CatnessDbContext() { }
 
@@ -26,40 +27,52 @@ public class CatnessDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<User>(user =>
-        {
-            user.HasKey(userEntity => userEntity.UserId);
-        });
+            {
+                user.HasKey(userEntity => userEntity.UserId);
+            }
+        );
 
         modelBuilder.Entity<Follow>(follow =>
-        {
-            follow.HasKey(f => new
             {
-                f.FollowerId,
-                f.FollowedId
-            });
+                follow.HasKey(f => new
+                {
+                    f.FollowerId,
+                    f.FollowedId
+                });
 
-            follow.HasOne(f => f.Follower)
-                .WithMany(f => f.Following)
-                .HasForeignKey(f => f.FollowerId)
-                .OnDelete(DeleteBehavior.Cascade);
+                follow.HasOne(f => f.Follower)
+                    .WithMany(f => f.Following)
+                    .HasForeignKey(f => f.FollowerId)
+                    .OnDelete(DeleteBehavior.Cascade);
 
-            follow.HasOne(f => f.Followed)
-                .WithMany(f => f.Followers)
-                .HasForeignKey(f => f.FollowedId)
-                .OnDelete(DeleteBehavior.Cascade);
-        });
+                follow.HasOne(f => f.Followed)
+                    .WithMany(f => f.Followers)
+                    .HasForeignKey(f => f.FollowedId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            }
+        );
 
         modelBuilder.Entity<GuildUser>(gu =>
-        {
-            gu.HasKey(g => new
             {
-                g.GuildId,
-                g.UserId
-            });
+                gu.HasKey(g => new
+                {
+                    g.GuildId,
+                    g.UserId
+                });
 
-            gu.HasOne(g => g.User).WithMany(g => g.Guilds).HasForeignKey(g => g.UserId).OnDelete(DeleteBehavior.Cascade);
+                gu.HasOne(g => g.User).WithMany(g => g.Guilds).HasForeignKey(g => g.UserId).OnDelete(DeleteBehavior.Cascade);
 
-            gu.HasOne(g => g.Guild).WithMany(g => g.Users).HasForeignKey(g => g.GuildId).OnDelete(DeleteBehavior.Cascade);
-        });
+                gu.HasOne(g => g.Guild).WithMany(g => g.Users).HasForeignKey(g => g.GuildId).OnDelete(DeleteBehavior.Cascade);
+            }
+        );
+
+        modelBuilder.Entity<Reminder>(reminder =>
+            {
+                reminder.HasKey(r => r.ReminderId);
+                reminder.Property(r => r.ReminderId).ValueGeneratedOnAdd();
+
+                reminder.HasOne(r => r.User).WithMany(u => u.Reminders).OnDelete(DeleteBehavior.Cascade);
+            }
+        );
     }
 }
