@@ -15,13 +15,19 @@ public class ReminderHandler
         _client = client;
     }
 
-    public async Task SendReminder(Reminder reminder)
+    public async Task SendReminder(Reminder reminder, bool late = false)
     {
-        Embed embed = new EmbedBuilder()
-            .WithTitle($"Reminder <@{reminder.UserId}>!")
-            .WithDescription(reminder.Body)
-            .WithCurrentTimestamp()
-            .Build();
+        EmbedBuilder embedBuilder = new EmbedBuilder()
+            .WithTitle($"Reminder!")
+            .WithDescription($"<@{reminder.UserId}>\n{reminder.Body}")
+            .WithCurrentTimestamp();
+
+        if (late)
+        {
+            embedBuilder = embedBuilder.WithFooter("Sorry for the late reminder!");
+        }
+
+        Embed embed = embedBuilder.Build();
 
         if (reminder.PrivateReminder)
         {

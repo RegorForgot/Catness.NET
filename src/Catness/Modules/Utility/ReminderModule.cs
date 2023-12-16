@@ -1,16 +1,75 @@
-﻿using Catness.Enums;
+﻿using System.Text;
+using Catness.Enums;
 using Catness.Persistence.Models;
-using Catness.Services;
 using Catness.Services.EFServices;
+using Catness.Utility;
 using Discord;
 using Discord.Interactions;
-using NodaTime;
+using Discord.WebSocket;
 
 namespace Catness.Modules.Utility;
 
 [Group("reminder", "Reminder actions")]
 public class ReminderModule : InteractionModuleBase
 {
+    private readonly DiscordSocketClient _client;
+    private readonly ReminderService _reminderService;
+    private readonly UserService _userService;
+
+    public ReminderModule(
+        DiscordSocketClient client,
+        ReminderService reminderService,
+        UserService userService)
+    {
+        _client = client;
+        _reminderService = reminderService;
+        _userService = userService;
+    }
+
+    [SlashCommand("list", "List the user's reminders")]
+    public async Task ListUserReminders(
+        bool includePrivate = false)
+    {
+        await DeferAsync();
+        List<Reminder> reminders = await _reminderService.GetUserReminders(Context.User.Id, includePrivate);
+
+        string username;
+
+        if (Context.Interaction.User is IGuildUser guildUser)
+        {
+            username = guildUser.Nickname ?? guildUser.DisplayName ?? guildUser.Username;
+        }
+        else
+        {
+            username = Context.User.Username;
+        }
+
+        if (reminders.Count == 0)
+        {
+            await FollowupAsync("You have no reminders!", ephemeral: true);
+            return;
+        }
+
+        StringBuilder sb = new StringBuilder();
+
+        foreach (Reminder reminder in reminders)
+        {
+            sb.AppendLine($"Id: {reminder.ReminderGuid}");
+            sb.AppendLine($"Reminder on: {new TimestampTag(new DateTimeOffset(reminder.ReminderTime))}");
+            sb.AppendLine($"Created on: {new TimestampTag(new DateTimeOffset(reminder.TimeCreated))}");
+            sb.AppendLine($"For: {reminder.Body.Truncate(20)}");
+            sb.AppendLine();
+        }
+
+        Embed embed = new EmbedBuilder()
+            .WithTitle($"Reminders for {username}")
+            .WithDescription(sb.ToString().TrimEnd())
+            .WithCurrentTimestamp()
+            .Build();
+
+        await FollowupAsync(embed: embed, ephemeral: includePrivate);
+    }
+
     [Group("add", "Add a reminder")]
     public class ReminderAddModule : InteractionModuleBase
     {
@@ -62,8 +121,12 @@ public class ReminderModule : InteractionModuleBase
                     TimeCreated = Context.Interaction.CreatedAt.UtcDateTime
                 };
 
-                await _reminderService.AddReminder(reminder);
-                await FollowupAsync($"Added reminder on {TimestampTag.FromDateTimeOffset(dateTimeWithTimeZone)}", ephemeral: privateReminder);
+                bool success = await _reminderService.AddReminder(reminder);
+
+                string response = success
+                    ? $"You will be reminded {TimestampTag.FromDateTimeOffset(dateTimeWithTimeZone, TimestampTagStyles.Relative)}!"
+                    : $"You have too many reminders (7 max)! Please delete one before adding another.";
+                await FollowupAsync(response, ephemeral: success && privateReminder);
             }
             catch (Exception ex)
             {
@@ -108,8 +171,12 @@ public class ReminderModule : InteractionModuleBase
                     TimeCreated = Context.Interaction.CreatedAt.UtcDateTime
                 };
 
-                await _reminderService.AddReminder(reminder);
-                await FollowupAsync($"Added reminder on {TimestampTag.FromDateTimeOffset(reminderTime)}", ephemeral: privateReminder);
+                bool success = await _reminderService.AddReminder(reminder);
+
+                string response = success
+                    ? $"You will be reminded {TimestampTag.FromDateTimeOffset(reminderTime, TimestampTagStyles.Relative)}!"
+                    : $"You have too many reminders (7 max)! Please delete one before adding another.";
+                await FollowupAsync(response, ephemeral: success && privateReminder);
             }
             catch (Exception ex)
             {

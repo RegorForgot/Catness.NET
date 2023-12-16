@@ -24,24 +24,38 @@ public class ReminderService
         _memoryCache = memoryCache;
     }
 
-    public async Task<List<Reminder>> GetUserReminders(User user, bool noPrivate)
+    public async Task<List<Reminder>> GetUserReminders(ulong userId, bool includePrivate)
     {
         await using CatnessDbContext dbContext = await _dbContextFactory.CreateDbContextAsync();
 
-        IQueryable<Reminder> reminderQuery = dbContext.Reminders.Where(reminder => reminder.UserId == user.UserId);
+        IQueryable<Reminder> reminderQuery = dbContext.Reminders.Where(reminder => reminder.UserId == userId);
 
-        if (noPrivate)
+        if (!includePrivate)
         {
             reminderQuery = reminderQuery.Where(reminder => !reminder.PrivateReminder);
         }
 
         return await reminderQuery
+            .OrderBy(reminder => reminder.ReminderTime)
+            .ThenBy(reminder => reminder.TimeCreated)
             .AsNoTracking()
             .ToListAsync();
     }
 
-    public async Task AddReminder(Reminder reminder)
+    public Task<List<Reminder>> GetUserReminders(User user, bool includePrivate)
     {
+        return GetUserReminders(user.UserId, includePrivate);
+    }
+
+    public async Task<bool> AddReminder(Reminder reminder)
+    {
+        List<Reminder> reminders = await GetUserReminders(reminder.UserId, true);
+
+        if (reminders.Count >= 7)
+        {
+            return false;
+        }
+
         await using CatnessDbContext dbContext = await _dbContextFactory.CreateDbContextAsync();
 
         await dbContext.Reminders.AddAsync(reminder);
@@ -52,6 +66,7 @@ public class ReminderService
         }
 
         await dbContext.SaveChangesAsync();
+        return true;
     }
 
     public async Task UpdateReminder(Reminder reminder)
@@ -62,13 +77,20 @@ public class ReminderService
         await context.SaveChangesAsync();
     }
 
-    private async Task<List<Reminder>> GetUpcomingActiveReminders()
+    public async Task RemoveReminder(Reminder reminder)
+    {
+        await using CatnessDbContext context = await _dbContextFactory.CreateDbContextAsync();
+
+        context.Reminders.Remove(reminder);
+        await context.SaveChangesAsync();
+    }
+
+    private async Task<List<Reminder>> GetUpcomingReminders()
     {
         await using CatnessDbContext dbContext = await _dbContextFactory.CreateDbContextAsync();
 
         List<Reminder> reminders = await dbContext.Reminders
             .Where(reminder => reminder.ReminderTime - DateTime.UtcNow < TimeSpan.FromMinutes(10))
-            .Where(reminder => reminder.Reminded == RemindedType.None)
             .AsNoTracking()
             .ToListAsync();
 
@@ -97,8 +119,7 @@ public class ReminderService
 
         if (timeToReminder < TimeSpan.Zero)
         {
-            await _reminderHandler.SendReminder(reminder);
-            reminder.Reminded = RemindedType.Reminded;
+            await _reminderHandler.SendReminder(reminder, true);
         }
         else
         {
@@ -109,33 +130,25 @@ public class ReminderService
             {
                 await Task.Delay(timeToReminder, cancellationToken.Token);
                 await _reminderHandler.SendReminder(reminder);
-                reminder.Reminded = RemindedType.Reminded;
             }
             catch (OperationCanceledException)
             {
-                reminder.Reminded = RemindedType.Cancelled;
                 _memoryCache.Remove(key);
             }
         }
 
-        await UpdateReminder(reminder);
+        await RemoveReminder(reminder);
     }
 
 
     public async Task StopReminder(Reminder reminder)
     {
-        if (reminder.Reminded != RemindedType.None)
-        {
-            return;
-        }
-
         string key = GetReminderCancellationTokenCacheKey(reminder.ReminderGuid);
         bool reminding = _memoryCache.TryGetValue(key, out CancellationTokenSource? cancellationToken);
 
         if (!reminding)
         {
-            reminder.Reminded = RemindedType.Cancelled;
-            await UpdateReminder(reminder);
+            await RemoveReminder(reminder);
         }
         else
         {
@@ -156,7 +169,7 @@ public class ReminderService
             do
             {
                 CreateNewToken();
-                IEnumerable<Reminder> reminders = await GetUpcomingActiveReminders();
+                IEnumerable<Reminder> reminders = await GetUpcomingReminders();
 
                 ParallelOptions options = new ParallelOptions
                 {

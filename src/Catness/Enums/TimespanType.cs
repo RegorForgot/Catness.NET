@@ -4,9 +4,9 @@ namespace Catness.Enums;
 
 public class TimespanType
 {
-    private int Minute { get; set; } = 0;
-    private int Hour { get; set; } = 0;
-    private int Day { get; set; } = 0;
+    private int Minute { get; set; }
+    private int Hour { get; set; }
+    private int Day { get; set; }
 
     public TimespanType() { }
 
@@ -24,7 +24,7 @@ public class TimespanType
         Day = day;
     }
 
-    public bool IsValid() => Day != 0 && Hour != 0 && Minute != 0;
+    public bool IsValid() => Day != 0 || Hour != 0 || Minute != 0;
 
     public TimeSpan GetTimeSpan() => new TimeSpan(Day, Hour, Minute, 0);
 }
