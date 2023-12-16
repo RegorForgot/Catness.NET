@@ -1,5 +1,6 @@
 ﻿using Catness.Enums;
 using Catness.Persistence.Models;
+using Catness.Services;
 using Catness.Services.EFServices;
 using Discord;
 using Discord.Interactions;
@@ -30,6 +31,12 @@ public class ReminderModule : InteractionModuleBase
             bool privateReminder = false,
             string text = "")
         {
+            if (dateTime.IsTimeBeforeNow())
+            {
+                await RespondAsync("The time you have chosen is before the present!", ephemeral: true);
+                return;
+            }
+
             await DeferAsync();
             try
             {
@@ -42,15 +49,7 @@ public class ReminderModule : InteractionModuleBase
                     channelId = channel.Id;
                 }
 
-                user.Locale ??= "Etc/UTC";
-                DateTimeZone timeZone = DateTimeZoneProviders.Tzdb.GetZoneOrNull(user.Locale) ?? DateTimeZone.Utc;
-
-
-                
-                DateTime dateTimeWithTimeZone = Instant
-                    .FromDateTimeUtc(DateTime.SpecifyKind(dateTime, DateTimeKind.Utc))
-                    .InZone(timeZone)
-                    .ToDateTimeUtc();
+                DateTime dateTimeWithTimeZone = dateTime.GetUtcDateTimeWithTimeZone(user.Locale ??= "Etc/UTC");
 
                 Reminder reminder = new Reminder
                 {
@@ -78,6 +77,12 @@ public class ReminderModule : InteractionModuleBase
             bool privateReminder = false,
             string text = "")
         {
+            if (!reminderTimeSpan.IsValid())
+            {
+                await RespondAsync("Please select a non-zero time.", ephemeral: true);
+            }
+
+            await DeferAsync();
             try
             {
                 _ = await _userService.GetOrAddUser(Context.User.Id);
@@ -104,11 +109,11 @@ public class ReminderModule : InteractionModuleBase
                 };
 
                 await _reminderService.AddReminder(reminder);
-                await RespondAsync($"Added reminder on {TimestampTag.FromDateTimeOffset(reminderTime)}", ephemeral: privateReminder);
+                await FollowupAsync($"Added reminder on {TimestampTag.FromDateTimeOffset(reminderTime)}", ephemeral: privateReminder);
             }
             catch (Exception ex)
             {
-                await RespondAsync(ex.InnerException?.Message);
+                await FollowupAsync(ex.InnerException?.Message);
             }
         }
     }
