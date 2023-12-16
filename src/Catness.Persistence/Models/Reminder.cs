@@ -13,6 +13,6 @@ public class Reminder
     public virtual User User { get; set; }
     public ulong UserId { get; set; }
 
-    public DateTimeOffset ReminderTime { get; set; }
-    public DateTimeOffset TimeCreated { get; set; }
+    public DateTime ReminderTime { get; set; }
+    public DateTime TimeCreated { get; set; }
 }

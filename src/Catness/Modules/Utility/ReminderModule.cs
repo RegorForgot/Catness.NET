@@ -30,44 +30,7 @@ public class ReminderModule : InteractionModuleBase
             bool privateReminder = false,
             string text = "")
         {
-            User user = await _userService.GetOrAddUser(Context.User.Id);
-
-            ulong? channelId = null;
-
-            if (Context.Channel is ITextChannel channel)
-            {
-                channelId = channel.Id;
-            }
-
-            user.Locale ??= "Etc/UTC";
-            DateTimeZone timeZone = DateTimeZoneProviders.Tzdb.GetZoneOrNull(user.Locale) ?? DateTimeZone.Utc;
-
-            DateTimeOffset dateTimeWithTimeZone = Instant
-                .FromDateTimeOffset(new DateTimeOffset(dateTime, TimeSpan.Zero))
-                .InZone(timeZone)
-                .ToDateTimeUtc();
-
-            Reminder reminder = new Reminder
-            {
-                ReminderGuid = Guid.NewGuid(),
-                User = user,
-                Body = text,
-                PrivateReminder = privateReminder,
-                ReminderTime = dateTimeWithTimeZone,
-                ChannelId = channelId,
-                TimeCreated = Context.Interaction.CreatedAt
-            };
-
-            await _reminderService.AddReminder(reminder);
-            await RespondAsync($"Added reminder on {TimestampTag.FromDateTimeOffset(dateTimeWithTimeZone)}", ephemeral: privateReminder);
-        }
-
-        [SlashCommand("from", "Add a reminder for a certain period from now")]
-        public async Task AddReminderFrom(
-            [ComplexParameter] TimespanType reminderTimeSpan,
-            bool privateReminder = false,
-            string text = "")
-        {
+            await DeferAsync();
             try
             {
                 User user = await _userService.GetOrAddUser(Context.User.Id);
@@ -79,8 +42,55 @@ public class ReminderModule : InteractionModuleBase
                     channelId = channel.Id;
                 }
 
+                user.Locale ??= "Etc/UTC";
+                DateTimeZone timeZone = DateTimeZoneProviders.Tzdb.GetZoneOrNull(user.Locale) ?? DateTimeZone.Utc;
+
+
+                
+                DateTime dateTimeWithTimeZone = Instant
+                    .FromDateTimeUtc(DateTime.SpecifyKind(dateTime, DateTimeKind.Utc))
+                    .InZone(timeZone)
+                    .ToDateTimeUtc();
+
+                Reminder reminder = new Reminder
+                {
+                    ReminderGuid = Guid.NewGuid(),
+                    UserId = Context.User.Id,
+                    Body = text,
+                    PrivateReminder = privateReminder,
+                    ReminderTime = dateTimeWithTimeZone,
+                    ChannelId = channelId,
+                    TimeCreated = Context.Interaction.CreatedAt.UtcDateTime
+                };
+
+                await _reminderService.AddReminder(reminder);
+                await FollowupAsync($"Added reminder on {TimestampTag.FromDateTimeOffset(dateTimeWithTimeZone)}", ephemeral: privateReminder);
+            }
+            catch (Exception ex)
+            {
+                await FollowupAsync(ex.Message);
+            }
+        }
+
+        [SlashCommand("from", "Add a reminder for a certain period from now")]
+        public async Task AddReminderFrom(
+            [ComplexParameter] TimespanType reminderTimeSpan,
+            bool privateReminder = false,
+            string text = "")
+        {
+            try
+            {
+                _ = await _userService.GetOrAddUser(Context.User.Id);
+
+                ulong? channelId = null;
+
+                if (Context.Channel is ITextChannel channel)
+                {
+                    channelId = channel.Id;
+                }
+
                 TimeSpan timeSpan = reminderTimeSpan.GetTimeSpan();
-                DateTimeOffset reminderTime = DateTimeOffset.UtcNow + timeSpan;
+                DateTime reminderTime = DateTime.UtcNow + timeSpan;
 
                 Reminder reminder = new Reminder
                 {
@@ -90,7 +100,7 @@ public class ReminderModule : InteractionModuleBase
                     PrivateReminder = privateReminder,
                     ReminderTime = reminderTime,
                     ChannelId = channelId,
-                    TimeCreated = Context.Interaction.CreatedAt
+                    TimeCreated = Context.Interaction.CreatedAt.UtcDateTime
                 };
 
                 await _reminderService.AddReminder(reminder);

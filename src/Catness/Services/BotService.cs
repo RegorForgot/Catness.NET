@@ -79,11 +79,14 @@ public class BotService
         using PeriodicTimer timer = new PeriodicTimer(TimeSpan.FromMinutes(10));
         try
         {
-            while (await timer.WaitForNextTickAsync(_reminderTokenSource.Token))
+            do
             {
                 await _reminderHandler.PrepareExpiry(_reminderTokenSource.Token);
-            }
+            } while (await timer.WaitForNextTickAsync(_reminderTokenSource.Token));
         }
-        catch (OperationCanceledException) { }
+        catch (OperationCanceledException)
+        {
+            Console.Write("Cancelled");
+        }
     }
 }

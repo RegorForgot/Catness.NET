@@ -17,32 +17,32 @@ public class ReminderService
     public async Task<List<Reminder>> GetUpcomingActiveReminders()
     {
         await using CatnessDbContext dbContext = await _dbContextFactory.CreateDbContextAsync();
-
-        return await dbContext.Reminders
-            .Where(reminder => reminder.ReminderTime - DateTimeOffset.Now < TimeSpan.FromMinutes(10) && reminder.Reminded == RemindedType.None)
+        
+        List<Reminder> reminders = await dbContext.Reminders
+            .Where(reminder => reminder.ReminderTime - DateTime.UtcNow < TimeSpan.FromMinutes(10) && reminder.Reminded == RemindedType.None)
             .ToListAsync();
+        return reminders;
     }
 
     public async Task<List<Reminder>> GetUserReminders(User user)
     {
         await using CatnessDbContext dbContext = await _dbContextFactory.CreateDbContextAsync();
-        
+
         return await dbContext.Reminders
             .Where(reminder => reminder.UserId == user.UserId)
             .AsNoTracking()
             .ToListAsync();
     }
 
-    public async Task<Guid> AddReminder(Reminder reminder)
+    public async Task AddReminder(Reminder reminder)
     {
         await using CatnessDbContext dbContext = await _dbContextFactory.CreateDbContextAsync();
 
         await dbContext.Reminders.AddAsync(reminder);
         await dbContext.SaveChangesAsync();
-        return reminder.ReminderGuid;
     }
-    
-    
+
+
     public async Task UpdateReminder(Reminder reminder)
     {
         await using CatnessDbContext context = await _dbContextFactory.CreateDbContextAsync();

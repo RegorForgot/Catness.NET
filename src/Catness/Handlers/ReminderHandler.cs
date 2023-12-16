@@ -51,7 +51,7 @@ public class ReminderHandler
             return;
         }
 
-        TimeSpan timeToReminder = reminder.ReminderTime - DateTimeOffset.Now;
+        TimeSpan timeToReminder = reminder.ReminderTime - DateTime.UtcNow;
 
         if (timeToReminder < TimeSpan.Zero)
         {

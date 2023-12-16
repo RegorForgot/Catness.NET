@@ -8,7 +8,7 @@ public class User
     public string? SteamVanity { get; set; }
 
     public DateOnly? Birthday { get; set; }
-    public DateTimeOffset? LastRepTime { get; set; }
+    public DateTime? LastRepTime { get; set; }
 
     public ulong Experience { get; set; }
     public short Level { get; set; }
