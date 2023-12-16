@@ -35,7 +35,7 @@ public class ReminderHandler
             {
                 try
                 {
-                    await user.SendMessageAsync($"<@{reminder.UserId}", embed: embed, allowedMentions: new AllowedMentions(AllowedMentionTypes.Users));
+                    await user.SendMessageAsync($"<@{reminder.UserId}>", embed: embed, allowedMentions: new AllowedMentions(AllowedMentionTypes.Users));
                 }
                 catch (HttpException) { }
             }
@@ -47,7 +47,7 @@ public class ReminderHandler
 
                 try
                 {
-                    await channel.SendMessageAsync($"<@{reminder.UserId}", embed: embed, allowedMentions: new AllowedMentions(AllowedMentionTypes.Users));
+                    await channel.SendMessageAsync($"<@{reminder.UserId}>", embed: embed, allowedMentions: new AllowedMentions(AllowedMentionTypes.Users));
                 }
                 catch (HttpException) { }
             }
