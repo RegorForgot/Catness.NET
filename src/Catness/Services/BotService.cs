@@ -2,11 +2,11 @@
 using Catness.Handlers;
 using Catness.Logging;
 using Catness.Persistence.Models;
+using Catness.Services.EFServices;
 using Discord;
 using Discord.Interactions;
 using Discord.WebSocket;
 using Microsoft.Extensions.Options;
-using NodaTime;
 
 namespace Catness.Services;
 
@@ -17,9 +17,10 @@ public class BotService
     private readonly UserHandler _userHandler;
     private readonly IServiceProvider _serviceProvider;
     private readonly IEnumerable<ILogProvider> _logProviders;
-    private readonly ReminderHandler _reminderHandler;
+    private readonly ReminderService _reminderService;
     private readonly BotConfiguration _botConfiguration;
-    private readonly CancellationTokenSource _reminderTokenSource;
+
+    private bool _ready;
 
     public BotService(
         DiscordSocketClient discordSocketClient,
@@ -27,16 +28,15 @@ public class BotService
         IServiceProvider serviceProvider,
         IEnumerable<ILogProvider> logProviders,
         IOptions<BotConfiguration> botConfiguration,
-        ReminderHandler reminderHandler,
+        ReminderService reminderService,
         UserHandler userHandler)
     {
         _discordSocketClient = discordSocketClient;
         _interactionService = interactionService;
         _serviceProvider = serviceProvider;
         _logProviders = logProviders;
-        _reminderHandler = reminderHandler;
+        _reminderService = reminderService;
         _userHandler = userHandler;
-        _reminderTokenSource = new CancellationTokenSource();
         _botConfiguration = botConfiguration.Value;
     }
 
@@ -51,7 +51,16 @@ public class BotService
         _discordSocketClient.MessageReceived += message =>
             _userHandler.HandleLevellingAsync(message);
 
-        _discordSocketClient.Disconnected += _ => _reminderTokenSource.CancelAsync();
+        _discordSocketClient.Disconnected += _ => _reminderService.StopAllReminders();
+
+        _discordSocketClient.Connected += () =>
+        {
+            if (_ready)
+            {
+                Task.Run(_reminderService.StartReminderHandling);
+            }
+            return Task.CompletedTask;
+        };
 
         _discordSocketClient.Ready += () =>
         {
@@ -59,7 +68,8 @@ public class BotService
             {
                 _interactionService.RegisterCommandsToGuildAsync(testingGuildID);
             }
-            Task.Run(StartReminderHandling);
+            _ready = true;
+            Task.Run(_reminderService.StartReminderHandling);
             return Task.CompletedTask;
         };
 
@@ -72,21 +82,5 @@ public class BotService
         await _interactionService.AddModulesAsync(Assembly.GetExecutingAssembly(), _serviceProvider);
 
         await _discordSocketClient.StartAsync();
-    }
-
-    private async Task StartReminderHandling()
-    {
-        using PeriodicTimer timer = new PeriodicTimer(TimeSpan.FromMinutes(10));
-        try
-        {
-            do
-            {
-                await _reminderHandler.PrepareExpiry(_reminderTokenSource.Token);
-            } while (await timer.WaitForNextTickAsync(_reminderTokenSource.Token));
-        }
-        catch (OperationCanceledException)
-        {
-            Console.Write("Cancelled");
-        }
     }
 }

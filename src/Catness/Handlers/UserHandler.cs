@@ -39,7 +39,7 @@ public class UserHandler
 
         string key = GetUserCooldownCacheKey(message.Author.Id);
 
-        bool cacheValue = _cache.TryGetValue(key, out object? cooldown);
+        bool cacheValue = _cache.TryGetValue(key, out _);
         if (cacheValue)
         {
             return;
@@ -54,7 +54,7 @@ public class UserHandler
         {
             return;
         }
-        
+
         if (!user.LevellingEnabled || !guild.LevellingEnabled)
         {
             return;

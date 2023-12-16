@@ -1,15 +1,3 @@
-﻿using Discord.WebSocket;
+﻿namespace Catness.Handlers;
 
-namespace Catness.Handlers;
-
-public class BotHandler
-{
-    private readonly DiscordSocketClient _client;
-    
-    public BotHandler(
-        DiscordSocketClient client)
-    {
-        _client = client;
-
-    }
-}
+public class BotHandler;
