@@ -19,7 +19,7 @@ public class ReminderHandler
     {
         EmbedBuilder embedBuilder = new EmbedBuilder()
             .WithTitle($"Reminder!")
-            .WithDescription($"<@{reminder.UserId}>\n{reminder.Body}")
+            .WithDescription($"{reminder.Body}")
             .WithCurrentTimestamp();
 
         if (late)
@@ -35,7 +35,7 @@ public class ReminderHandler
             {
                 try
                 {
-                    await user.SendMessageAsync(embed: embed, allowedMentions: new AllowedMentions(AllowedMentionTypes.Users));
+                    await user.SendMessageAsync($"<@{reminder.UserId}", embed: embed, allowedMentions: new AllowedMentions(AllowedMentionTypes.Users));
                 }
                 catch (HttpException) { }
             }
@@ -47,7 +47,7 @@ public class ReminderHandler
 
                 try
                 {
-                    await channel.SendMessageAsync(embed: embed, allowedMentions: new AllowedMentions(AllowedMentionTypes.Users));
+                    await channel.SendMessageAsync($"<@{reminder.UserId}", embed: embed, allowedMentions: new AllowedMentions(AllowedMentionTypes.Users));
                 }
                 catch (HttpException) { }
             }

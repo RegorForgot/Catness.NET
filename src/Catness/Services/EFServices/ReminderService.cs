@@ -24,6 +24,13 @@ public class ReminderService
         _memoryCache = memoryCache;
     }
 
+    public async Task<Reminder?> GetReminder(Guid guid)
+    {
+        await using CatnessDbContext dbContext = await _dbContextFactory.CreateDbContextAsync();
+
+        return await dbContext.Reminders.AsNoTracking().FirstOrDefaultAsync(reminder => reminder.ReminderGuid == guid);
+    }
+
     public async Task<List<Reminder>> GetUserReminders(ulong userId, bool includePrivate)
     {
         await using CatnessDbContext dbContext = await _dbContextFactory.CreateDbContextAsync();
@@ -67,14 +74,6 @@ public class ReminderService
 
         await dbContext.SaveChangesAsync();
         return true;
-    }
-
-    public async Task UpdateReminder(Reminder reminder)
-    {
-        await using CatnessDbContext context = await _dbContextFactory.CreateDbContextAsync();
-
-        context.Reminders.Update(reminder);
-        await context.SaveChangesAsync();
     }
 
     public async Task RemoveReminder(Reminder reminder)

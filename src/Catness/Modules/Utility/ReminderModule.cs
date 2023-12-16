@@ -26,6 +26,31 @@ public class ReminderModule : InteractionModuleBase
         _userService = userService;
     }
 
+    [SlashCommand("cancel", "Cancel a reminder")]
+    public async Task CancelReminder(
+        string reminderId,
+        bool ephemeral = false)
+    {
+        if (!Guid.TryParse(reminderId, out Guid reminderGuid))
+        {
+            await RespondAsync("Bad reminder ID provided", ephemeral: ephemeral);
+            return;
+        }
+
+        await DeferAsync(ephemeral: ephemeral);
+
+        Reminder? dbReminder = await _reminderService.GetReminder(reminderGuid);
+
+        if (dbReminder is null || dbReminder.UserId != Context.User.Id)
+        {
+            await FollowupAsync("You do not have a reminder with this ID.", ephemeral: ephemeral);
+            return;
+        }
+
+        await _reminderService.StopReminder(dbReminder);
+        await FollowupAsync($"Deleted reminder with id {reminderGuid}", ephemeral: ephemeral);
+    }
+
     [SlashCommand("list", "List the user's reminders")]
     public async Task ListUserReminders(
         bool includePrivate = false)
