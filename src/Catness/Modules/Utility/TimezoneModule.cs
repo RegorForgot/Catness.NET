@@ -1,4 +1,5 @@
-﻿using Catness.Persistence.Models;
+﻿using Catness.Autocomplete;
+using Catness.Persistence.Models;
 using Catness.Services.EFServices;
 using Discord.Interactions;
 using NodaTime;
@@ -18,8 +19,8 @@ public class TimezoneModule : InteractionModuleBase
 
     [SlashCommand("set", "Set your timezone")]
     public async Task SetLocale(
-        [Summary(description: "Set your locale, using a code from the tzdb database")]
-        string? locale)
+        [Summary(description: "Your locale")] [Autocomplete(typeof(TimezoneAutocomplete))]
+        string? locale = null)
     {
         await DeferAsync(ephemeral: true);
 
@@ -38,13 +39,14 @@ public class TimezoneModule : InteractionModuleBase
 
         if (zone is null)
         {
-            await FollowupAsync("Invalid locale provided, please see TZDB codes for reference", ephemeral: true);
+            await FollowupAsync("Invalid locale provided", ephemeral: true);
             return;
         }
 
         user.Locale = zone.Id;
         await _userService.UpdateUser(user);
 
-        await FollowupAsync($"Set locale to {zone.Id}", ephemeral: true);
+        await FollowupAsync($"Set locality to {locale}",
+            ephemeral: true);
     }
 }

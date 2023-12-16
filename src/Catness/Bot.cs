@@ -56,7 +56,7 @@ public class Bot
             .WithSingletonLifetime()
         );
 
-        DiscordSocketConfig config = new DiscordSocketConfig
+        DiscordSocketConfig clientConfig = new DiscordSocketConfig
         {
             GatewayIntents =
                 GatewayIntents.AllUnprivileged &
@@ -64,7 +64,14 @@ public class Bot
                 ~GatewayIntents.GuildInvites
         };
 
-        DiscordSocketClient client = new DiscordSocketClient(config);
+        InteractionServiceConfig interactionConfig = new InteractionServiceConfig
+        {
+            EnableAutocompleteHandlers = true
+        };
+
+        DiscordSocketClient client = new DiscordSocketClient(clientConfig);
+        InteractionService interactionService = new InteractionService(client, interactionConfig);
+
 
         serviceCollection
             .AddSingleton<MakesweetAPIService>()
@@ -76,14 +83,14 @@ public class Bot
             .AddSingleton<BotHandler>()
             .AddSingleton<ReminderHandler>();
         serviceCollection.AddSingleton(client);
-        serviceCollection.AddSingleton<InteractionService>();
+        serviceCollection.AddSingleton(interactionService);
         serviceCollection.AddSingleton<BotService>();
 
         serviceCollection.AddDbContextFactory<CatnessDbContext>(optionsBuilder =>
             optionsBuilder.UseNpgsql(Configuration["DatabaseConfiguration:ConnectionString"]));
 
         serviceCollection.AddMemoryCache();
-        
+
         return serviceCollection.BuildServiceProvider();
     }
 }
