@@ -76,7 +76,7 @@ public class ReminderService
         return true;
     }
 
-    public async Task RemoveReminder(Reminder reminder)
+    private async Task RemoveReminder(Reminder reminder)
     {
         await using CatnessDbContext context = await _dbContextFactory.CreateDbContextAsync();
 
@@ -96,12 +96,10 @@ public class ReminderService
         return reminders;
     }
 
-    public void CreateNewToken()
+    private void CreateNewToken()
     {
         ReminderCanceller = new CancellationTokenSource();
     }
-
-    public async Task PrepareReminderExpiry() { }
 
     private async Task ConsumeReminder(Reminder reminder)
     {
@@ -167,6 +165,8 @@ public class ReminderService
         {
             do
             {
+                Console.WriteLine("Started reminder operations");
+
                 CreateNewToken();
                 IEnumerable<Reminder> reminders = await GetUpcomingReminders();
 
@@ -175,6 +175,7 @@ public class ReminderService
                     MaxDegreeOfParallelism = 50,
                     CancellationToken = ReminderCanceller.Token
                 };
+
 
                 await Parallel.ForEachAsync(reminders, options, (reminder, _) =>
                 {
@@ -186,7 +187,7 @@ public class ReminderService
         }
         catch (OperationCanceledException)
         {
-            Console.WriteLine("Cancelled reminder waiting");
+            Console.WriteLine("Cancelled reminder operation");
         }
     }
 

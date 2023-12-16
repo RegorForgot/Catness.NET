@@ -5,7 +5,6 @@ using Catness.Services.EFServices;
 using Catness.Utility;
 using Discord;
 using Discord.Interactions;
-using Discord.WebSocket;
 
 namespace Catness.Modules.Utility;
 
@@ -14,10 +13,7 @@ public class ReminderModule : InteractionModuleBase
 {
     private readonly ReminderService _reminderService;
 
-    public ReminderModule(
-        DiscordSocketClient client,
-        ReminderService reminderService,
-        UserService userService)
+    public ReminderModule(ReminderService reminderService)
     {
         _reminderService = reminderService;
     }

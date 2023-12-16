@@ -12,7 +12,9 @@ namespace Catness.Services;
 
 public class BotService
 {
-    private readonly DiscordSocketClient _discordSocketClient;
+    private CancellationTokenSource _source = new CancellationTokenSource();
+
+    private readonly DiscordSocketClient _client;
     private readonly InteractionService _interactionService;
     private readonly UserHandler _userHandler;
     private readonly IServiceProvider _serviceProvider;
@@ -23,7 +25,7 @@ public class BotService
     private bool _ready;
 
     public BotService(
-        DiscordSocketClient discordSocketClient,
+        DiscordSocketClient client,
         InteractionService interactionService,
         IServiceProvider serviceProvider,
         IEnumerable<ILogProvider> logProviders,
@@ -31,7 +33,7 @@ public class BotService
         ReminderService reminderService,
         UserHandler userHandler)
     {
-        _discordSocketClient = discordSocketClient;
+        _client = client;
         _interactionService = interactionService;
         _serviceProvider = serviceProvider;
         _logProviders = logProviders;
@@ -42,27 +44,36 @@ public class BotService
 
     public async Task StartAsync()
     {
-        _discordSocketClient.InteractionCreated += async interaction =>
+
+        await _client.SetStatusAsync(UserStatus.AFK);
+
+        _client.InteractionCreated += async interaction =>
         {
-            SocketInteractionContext context = new SocketInteractionContext(_discordSocketClient, interaction);
+            SocketInteractionContext context = new SocketInteractionContext(_client, interaction);
             await _interactionService.ExecuteCommandAsync(context, _serviceProvider);
         };
 
-        _discordSocketClient.MessageReceived += message =>
+        _client.MessageReceived += message =>
             _userHandler.HandleLevellingAsync(message);
 
-        _discordSocketClient.Disconnected += _ => _reminderService.StopAllReminders();
+        _client.Disconnected += _ =>
+        {
+            Task.Run(_reminderService.StopAllReminders);
+            Task.Run(_source.CancelAsync);
+            return Task.CompletedTask;
+        };
 
-        _discordSocketClient.Connected += () =>
+        _client.Connected += () =>
         {
             if (_ready)
             {
                 Task.Run(_reminderService.StartReminderHandling);
+                Task.Run(SetStatus);
             }
             return Task.CompletedTask;
         };
 
-        _discordSocketClient.Ready += () =>
+        _client.Ready += () =>
         {
             foreach (ulong testingGuildID in _botConfiguration.DiscordIDs.TestingGuildIDs)
             {
@@ -70,17 +81,41 @@ public class BotService
             }
             _ready = true;
             Task.Run(_reminderService.StartReminderHandling);
+            Task.Run(SetStatus);
             return Task.CompletedTask;
         };
 
         foreach (ILogProvider logProvider in _logProviders)
         {
-            _discordSocketClient.Log += logProvider.Log;
+            _client.Log += logProvider.Log;
         }
 
-        await _discordSocketClient.LoginAsync(TokenType.Bot, _botConfiguration.DiscordConfiguration.DiscordToken);
+        await _client.LoginAsync(TokenType.Bot, _botConfiguration.DiscordConfiguration.DiscordToken);
         await _interactionService.AddModulesAsync(Assembly.GetExecutingAssembly(), _serviceProvider);
 
-        await _discordSocketClient.StartAsync();
+        await _client.StartAsync();
+    }
+
+    private async Task SetStatus()
+    {
+        using PeriodicTimer timer = new PeriodicTimer(TimeSpan.FromMinutes(30));
+        try
+        {
+            do
+            {
+                _source = new CancellationTokenSource();
+
+                if (_botConfiguration.DiscordConfiguration.Catchphrases.Length == 0)
+                {
+                    await _source.CancelAsync();
+                }
+
+                string status = _botConfiguration.DiscordConfiguration.Catchphrases
+                    .OrderBy(_ => Guid.NewGuid()).ToArray()[0];
+
+                await _client.SetCustomStatusAsync(status);
+            } while (await timer.WaitForNextTickAsync(_source.Token));
+        }
+        catch (OperationCanceledException) { }
     }
 }
