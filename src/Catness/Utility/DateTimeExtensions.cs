@@ -8,10 +8,8 @@ public static class DateTimeExtensions
     {
         DateTimeZone timeZone = DateTimeZoneProviders.Tzdb.GetZoneOrNull(locality) ?? DateTimeZone.Utc;
 
-        return Instant
-            .FromDateTimeUtc(DateTime.SpecifyKind(discordDateTime, DateTimeKind.Utc))
-            .InZone(timeZone)
-            .ToDateTimeUtc();
+        return DateTime.SpecifyKind(discordDateTime, DateTimeKind.Utc) -
+               timeZone.GetUtcOffset(Instant.FromDateTimeUtc(DateTime.UtcNow)).ToTimeSpan();
     }
 
     public static bool IsTimeBeforeNow(this DateTime discordDateTime)

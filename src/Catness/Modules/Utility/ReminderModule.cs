@@ -12,18 +12,14 @@ namespace Catness.Modules.Utility;
 [Group("reminder", "Reminder actions")]
 public class ReminderModule : InteractionModuleBase
 {
-    private readonly DiscordSocketClient _client;
     private readonly ReminderService _reminderService;
-    private readonly UserService _userService;
 
     public ReminderModule(
         DiscordSocketClient client,
         ReminderService reminderService,
         UserService userService)
     {
-        _client = client;
         _reminderService = reminderService;
-        _userService = userService;
     }
 
     [SlashCommand("cancel", "Cancel a reminder")]
@@ -115,12 +111,6 @@ public class ReminderModule : InteractionModuleBase
             bool privateReminder = false,
             string text = "")
         {
-            if (dateTime.IsTimeBeforeNow())
-            {
-                await RespondAsync("The time you have chosen is before the present!", ephemeral: true);
-                return;
-            }
-
             await DeferAsync();
             try
             {
@@ -134,6 +124,12 @@ public class ReminderModule : InteractionModuleBase
                 }
 
                 DateTime dateTimeWithTimeZone = dateTime.GetUtcDateTimeWithTimeZone(user.Locale ??= "Etc/UTC");
+                
+                if (dateTimeWithTimeZone.IsTimeBeforeNow())
+                {
+                    await FollowupAsync("The time you have chosen is before the present!", ephemeral: true);
+                    return;
+                }
 
                 Reminder reminder = new Reminder
                 {
