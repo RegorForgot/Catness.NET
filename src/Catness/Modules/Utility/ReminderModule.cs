@@ -107,10 +107,15 @@ public class ReminderModule : InteractionModuleBase
 
         [SlashCommand("on", "Add a reminder on a specific date and time")]
         public async Task AddReminderOn(
-            DateTime dateTime,
+            string dateTimeString,
             bool privateReminder = false,
             string text = "")
         {
+            if (!DateTime.TryParse(dateTimeString, out DateTime dateTime))
+            {
+                await RespondAsync("Please enter a valid date and/or time", ephemeral: privateReminder);
+            }
+
             await DeferAsync();
             try
             {
@@ -124,7 +129,7 @@ public class ReminderModule : InteractionModuleBase
                 }
 
                 DateTime dateTimeWithTimeZone = dateTime.GetUtcDateTimeWithTimeZone(user.Locale ??= "Etc/UTC");
-                
+
                 if (dateTimeWithTimeZone.IsTimeBeforeNow())
                 {
                     await FollowupAsync("The time you have chosen is before the present!", ephemeral: true);

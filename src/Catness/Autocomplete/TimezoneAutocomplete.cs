@@ -32,11 +32,6 @@ public class TimezoneAutocomplete : AutocompleteHandler
             string? searchValue = autocompleteInteraction.Data.Current.Value.ToString();
 
             results.ReplaceOrAddToDictionary(_allTimeZones
-                .Where(w => w.Value.StartsWith(searchValue, StringComparison.OrdinalIgnoreCase))
-                .Take(5)
-                .ToDictionary(d => d.Key, d => d.Value));
-
-            results.ReplaceOrAddToDictionary(_allTimeZones
                 .Where(w => w.Value.Contains(searchValue, StringComparison.OrdinalIgnoreCase))
                 .Take(5)
                 .ToDictionary(d => d.Key, d => d.Value));
