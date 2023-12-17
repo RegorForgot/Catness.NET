@@ -9,6 +9,7 @@ public class CatnessDbContext : DbContext
     public virtual DbSet<Guild> Guilds { get; set; }
 
     public virtual DbSet<GuildUser> GuildUsers { get; set; }
+    public virtual DbSet<GuildChannel> GuildChannels { get; set; }
 
     public virtual DbSet<Follow> Follows { get; set; }
     public virtual DbSet<Reminder> Reminders { get; set; }
@@ -72,6 +73,19 @@ public class CatnessDbContext : DbContext
                 reminder.HasKey(r => r.ReminderGuid);
 
                 reminder.HasOne(r => r.User).WithMany(u => u.Reminders).OnDelete(DeleteBehavior.Cascade);
+            }
+        );
+
+        modelBuilder.Entity<GuildChannel>(channel =>
+            {
+                channel.HasKey(c => c.ChannelId);
+                channel.HasOne(c => c.Guild).WithMany(g => g.Channels).OnDelete(DeleteBehavior.Cascade);
+            }
+        );
+
+        modelBuilder.Entity<Guild>(guild =>
+            {
+                guild.HasKey(g => g.GuildId);
             }
         );
     }

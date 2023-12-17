@@ -46,7 +46,7 @@ public class BotService
     {
 
         await _client.SetStatusAsync(UserStatus.AFK);
-
+        
         _client.InteractionCreated += async interaction =>
         {
             SocketInteractionContext context = new SocketInteractionContext(_client, interaction);

@@ -7,4 +7,5 @@ public class Guild
     public bool LevellingEnabled { get; set; } = true;
     
     public ICollection<GuildUser> Users { get; set; }
+    public ICollection<GuildChannel> Channels { get; set; }
 }

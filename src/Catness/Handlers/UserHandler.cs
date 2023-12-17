@@ -14,17 +14,20 @@ public class UserHandler
     private readonly IDbContextFactory<CatnessDbContext> _dbContextFactory;
     private readonly GuildService _guildService;
     private readonly UserService _userService;
+    private readonly ChannelService _channelService;
 
     public UserHandler(
         IMemoryCache cache,
         IDbContextFactory<CatnessDbContext> dbContextFactory,
         GuildService guildService,
-        UserService userService)
+        UserService userService,
+        ChannelService channelService)
     {
         _cache = cache;
         _dbContextFactory = dbContextFactory;
         _guildService = guildService;
         _userService = userService;
+        _channelService = channelService;
     }
 
     public async Task HandleLevellingAsync(SocketMessage message)
@@ -37,7 +40,7 @@ public class UserHandler
             return;
         }
 
-        string key = GetUserCooldownCacheKey(message.Author.Id);
+        string key = GetUserCooldownCacheKey(message.Author.Id, guildChannel.GuildId);
 
         bool cacheValue = _cache.TryGetValue(key, out _);
         if (cacheValue)
@@ -47,15 +50,11 @@ public class UserHandler
 
         await using CatnessDbContext context = await _dbContextFactory.CreateDbContextAsync();
 
-        Guild? guild = await _guildService.GetOrAddGuild(guildChannel.GuildId);
-        User? user = await _userService.GetUser(message.Author.Id);
+        Guild guild = await _guildService.GetOrAddGuild(guildChannel.GuildId);
+        User user = await _userService.GetOrAddUser(message.Author.Id);
+        GuildChannel? channel = await _channelService.GetChannel(guildChannel.Id);
 
-        if (user is null || guild is null)
-        {
-            return;
-        }
-
-        if (!user.LevellingEnabled || !guild.LevellingEnabled)
+        if (!user.LevellingEnabled || !guild.LevellingEnabled || (channel is not null && !channel.LevellingEnabled))
         {
             return;
         }
@@ -67,13 +66,13 @@ public class UserHandler
             return;
         }
 
-        user.Experience++;
-        await _userService.UpdateUser(user);
+        guildUser.Experience++;
+        await _guildService.UpdateGuildUser(guildUser);
         _cache.Set(key, new object(), TimeSpan.FromSeconds(5));
     }
 
-    public static string GetUserCooldownCacheKey(ulong userId)
+    private static string GetUserCooldownCacheKey(ulong userId, ulong guildId)
     {
-        return $"message-{userId}";
+        return $"message-{guildId}-{userId}";
     }
 }

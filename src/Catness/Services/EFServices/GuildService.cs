@@ -13,8 +13,8 @@ public class GuildService
     {
         _dbContextFactory = dbContextFactory;
     }
-    
-    public async Task<Guild?> GetOrAddGuild(ulong guildId)
+
+    public async Task<Guild> GetOrAddGuild(ulong guildId)
     {
         Guild? guild = await GetGuild(guildId);
 
@@ -24,7 +24,7 @@ public class GuildService
             {
                 GuildId = guildId
             };
-            
+
             await AddGuild(guild);
         }
 
@@ -34,7 +34,7 @@ public class GuildService
     public async Task AddGuild(Guild guild)
     {
         await using CatnessDbContext context = await _dbContextFactory.CreateDbContextAsync();
-        
+
         await context.Guilds.AddAsync(guild);
         await context.SaveChangesAsync();
     }
@@ -79,6 +79,14 @@ public class GuildService
         await using CatnessDbContext context = await _dbContextFactory.CreateDbContextAsync();
 
         await context.GuildUsers.AddAsync(guildUser);
+        await context.SaveChangesAsync();
+    }
+
+    public async Task UpdateGuildUser(GuildUser guildUser)
+    {
+        await using CatnessDbContext context = await _dbContextFactory.CreateDbContextAsync();
+
+        context.GuildUsers.Update(guildUser);
         await context.SaveChangesAsync();
     }
 }
