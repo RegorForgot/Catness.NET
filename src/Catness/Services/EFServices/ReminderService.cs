@@ -8,7 +8,7 @@ namespace Catness.Services.EFServices;
 
 public class ReminderService
 {
-    public CancellationTokenSource ReminderCanceller { get; private set; } = new CancellationTokenSource();
+    private CancellationTokenSource ReminderCanceller { get; set; } = new CancellationTokenSource();
 
     private readonly IDbContextFactory<CatnessDbContext> _dbContextFactory;
     private readonly IMemoryCache _memoryCache;

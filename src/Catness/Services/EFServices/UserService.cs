@@ -74,4 +74,12 @@ public class UserService
         context.Users.Update(user);
         await context.SaveChangesAsync();
     }
+
+    public async Task UpdateUser(params User[] users)
+    {
+        foreach (User user in users)
+        {
+            await UpdateUser(user);
+        }
+    }
 }

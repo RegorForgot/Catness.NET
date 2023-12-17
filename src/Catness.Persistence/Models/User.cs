@@ -8,15 +8,11 @@ public class User
     public string? SteamVanity { get; set; }
 
     public DateOnly? Birthday { get; set; }
-    public DateTime? LastRepTime { get; set; }
-
-    public ulong Experience { get; set; }
-    public short Level { get; set; }
-
-    public bool LevellingEnabled { get; set; }
-    public bool PrivateUser { get; set; } = true;
+    
+    public bool LevellingEnabled { get; set; } = true;
 
     public ulong Rep { get; set; }
+    public DateTime? LastRepTime { get; set; }
 
     public string? Locale { get; set; }
 
