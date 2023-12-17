@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Catness.Persistence.Migrations
 {
     [DbContext(typeof(CatnessDbContext))]
-    [Migration("20231217191740_AddPerChannelFiltering")]
+    [Migration("20231217192841_AddPerChannelFiltering")]
     partial class AddPerChannelFiltering
     {
         /// <inheritdoc />
