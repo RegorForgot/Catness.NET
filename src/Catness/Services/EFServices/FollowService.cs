@@ -13,7 +13,7 @@ public class FollowService
     {
         _dbContextFactory = dbContextFactory;
     }
-    
+
     public async Task<Follow?> GetFollow(ulong followerId, ulong followedId)
     {
         await using CatnessDbContext context = await _dbContextFactory.CreateDbContextAsync();
@@ -22,7 +22,7 @@ public class FollowService
             .AsNoTracking()
             .FirstOrDefaultAsync(user => user.FollowedId == followerId && user.FollowerId == followedId);
     }
-    
+
     public async Task AddFollow(ulong followerId, ulong followedId)
     {
         await using CatnessDbContext context = await _dbContextFactory.CreateDbContextAsync();
@@ -34,6 +34,14 @@ public class FollowService
         };
 
         await context.Follows.AddAsync(follow);
+        await context.SaveChangesAsync();
+    }
+
+    public async Task RemoveFollow(Follow follow)
+    {
+        await using CatnessDbContext context = await _dbContextFactory.CreateDbContextAsync();
+
+        context.Follows.Remove(follow);
         await context.SaveChangesAsync();
     }
 }

@@ -79,6 +79,7 @@ public class Bot
             .AddSingleton<FollowService>()
             .AddSingleton<UserService>()
             .AddSingleton<ReminderService>()
+            .AddSingleton<ChannelService>()
             .AddSingleton<UserHandler>()
             .AddSingleton<BotHandler>()
             .AddSingleton<ReminderHandler>();
