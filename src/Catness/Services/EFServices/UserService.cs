@@ -59,6 +59,21 @@ public class UserService
             .FirstOrDefaultAsync(user => user.UserId == userId);
     }
 
+    public async Task<List<User>> GetUsersWithFollowersWithBirthday()
+    {
+        await using CatnessDbContext context = await _dbContextFactory.CreateDbContextAsync();
+
+        DateTime.UtcNow.Deconstruct(out DateOnly dateOnly, out _);
+        
+        return await context.Users
+            .Where(user =>
+                user.Birthday != null &&
+                user.Birthday.Value.Month == dateOnly.Month &&
+                user.Birthday.Value.Day == dateOnly.Day)
+            .Include(user => user.Followers)
+            .ToListAsync();
+    }
+
     public async Task AddUser(User user)
     {
         await using CatnessDbContext context = await _dbContextFactory.CreateDbContextAsync();

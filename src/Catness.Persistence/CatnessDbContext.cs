@@ -5,6 +5,7 @@ namespace Catness.Persistence;
 
 public class CatnessDbContext : DbContext
 {
+    public virtual DbSet<BotPersistence> BotPersistence { get; set; }
     public virtual DbSet<User> Users { get; set; }
     public virtual DbSet<Guild> Guilds { get; set; }
 
@@ -28,6 +29,12 @@ public class CatnessDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<BotPersistence>(persistence =>
+            {
+                persistence.HasKey(p => p.Key);
+            }
+        );
+
         modelBuilder.Entity<User>(user =>
             {
                 user.HasKey(userEntity => userEntity.UserId);

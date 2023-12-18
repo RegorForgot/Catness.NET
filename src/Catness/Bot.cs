@@ -4,6 +4,7 @@ using Catness.Persistence;
 using Catness.Persistence.Models;
 using Catness.Services;
 using Catness.Services.EFServices;
+using Catness.Services.Timed;
 using Discord;
 using Discord.Interactions;
 using Discord.WebSocket;
@@ -80,8 +81,14 @@ public class Bot
             .AddSingleton<UserService>()
             .AddSingleton<ReminderService>()
             .AddSingleton<ChannelService>()
+            .AddSingleton<BotPersistenceService>()
+            .AddSingleton<ReminderDispatchService>()
+            .AddSingleton<ReminderService.ReminderRemoverService>()
             .AddSingleton<UserHandler>()
             .AddSingleton<BotHandler>()
+            .AddSingleton<BirthdayHandler>()
+            .AddSingleton<StatusService>()
+            .AddSingleton<BirthdayService>()
             .AddSingleton<ReminderHandler>();
         serviceCollection.AddSingleton(client);
         serviceCollection.AddSingleton(interactionService);

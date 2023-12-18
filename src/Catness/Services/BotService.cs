@@ -3,6 +3,7 @@ using Catness.Handlers;
 using Catness.Logging;
 using Catness.Persistence.Models;
 using Catness.Services.EFServices;
+using Catness.Services.Timed;
 using Discord;
 using Discord.Interactions;
 using Discord.WebSocket;
@@ -12,15 +13,15 @@ namespace Catness.Services;
 
 public class BotService
 {
-    private CancellationTokenSource _source = new CancellationTokenSource();
-
     private readonly DiscordSocketClient _client;
     private readonly InteractionService _interactionService;
+    private readonly ReminderDispatchService _reminderDispatchService;
+    private readonly BirthdayService _birthdayService;
+    private readonly StatusService _statusService;
     private readonly UserHandler _userHandler;
-    private readonly IServiceProvider _serviceProvider;
-    private readonly IEnumerable<ILogProvider> _logProviders;
-    private readonly ReminderService _reminderService;
     private readonly BotConfiguration _botConfiguration;
+    private readonly IEnumerable<ILogProvider> _logProviders;
+    private readonly IServiceProvider _serviceProvider;
 
     private bool _ready;
 
@@ -30,15 +31,19 @@ public class BotService
         IServiceProvider serviceProvider,
         IEnumerable<ILogProvider> logProviders,
         IOptions<BotConfiguration> botConfiguration,
-        ReminderService reminderService,
-        UserHandler userHandler)
+        ReminderDispatchService reminderDispatchService,
+        StatusService statusService,
+        UserHandler userHandler,
+        BirthdayService birthdayService)
     {
         _client = client;
         _interactionService = interactionService;
         _serviceProvider = serviceProvider;
         _logProviders = logProviders;
-        _reminderService = reminderService;
+        _reminderDispatchService = reminderDispatchService;
+        _statusService = statusService;
         _userHandler = userHandler;
+        _birthdayService = birthdayService;
         _botConfiguration = botConfiguration.Value;
     }
 
@@ -46,7 +51,7 @@ public class BotService
     {
 
         await _client.SetStatusAsync(UserStatus.AFK);
-        
+
         _client.InteractionCreated += async interaction =>
         {
             SocketInteractionContext context = new SocketInteractionContext(_client, interaction);
@@ -58,8 +63,9 @@ public class BotService
 
         _client.Disconnected += _ =>
         {
-            Task.Run(_reminderService.StopAllReminders);
-            Task.Run(_source.CancelAsync);
+            Task.Run(_reminderDispatchService.Stop);
+            Task.Run(_statusService.Stop);
+            Task.Run(_birthdayService.Stop);
             return Task.CompletedTask;
         };
 
@@ -67,8 +73,7 @@ public class BotService
         {
             if (_ready)
             {
-                Task.Run(_reminderService.StartReminderHandling);
-                Task.Run(SetStatus);
+                StartServices();
             }
             return Task.CompletedTask;
         };
@@ -80,8 +85,7 @@ public class BotService
                 _interactionService.RegisterCommandsToGuildAsync(testingGuildID);
             }
             _ready = true;
-            Task.Run(_reminderService.StartReminderHandling);
-            Task.Run(SetStatus);
+            StartServices();
             return Task.CompletedTask;
         };
 
@@ -96,26 +100,11 @@ public class BotService
         await _client.StartAsync();
     }
 
-    private async Task SetStatus()
+    public Task StartServices()
     {
-        using PeriodicTimer timer = new PeriodicTimer(TimeSpan.FromMinutes(30));
-        try
-        {
-            do
-            {
-                _source = new CancellationTokenSource();
-
-                if (_botConfiguration.DiscordConfiguration.Catchphrases.Length == 0)
-                {
-                    await _source.CancelAsync();
-                }
-
-                string status = _botConfiguration.DiscordConfiguration.Catchphrases
-                    .OrderBy(_ => Guid.NewGuid()).ToArray()[0];
-
-                await _client.SetCustomStatusAsync(status);
-            } while (await timer.WaitForNextTickAsync(_source.Token));
-        }
-        catch (OperationCanceledException) { }
+        Task.Run(_reminderDispatchService.Start);
+        Task.Run(_statusService.Start);
+        Task.Run(_birthdayService.Start);
+        return Task.CompletedTask;
     }
 }

@@ -2,7 +2,6 @@
 using Catness.Persistence;
 using Catness.Persistence.Models;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
 
 namespace Catness.Services.EFServices;
 
@@ -11,17 +10,14 @@ public class ReminderService
     private CancellationTokenSource ReminderCanceller { get; set; } = new CancellationTokenSource();
 
     private readonly IDbContextFactory<CatnessDbContext> _dbContextFactory;
-    private readonly IMemoryCache _memoryCache;
     private readonly ReminderHandler _reminderHandler;
 
     public ReminderService(
         IDbContextFactory<CatnessDbContext> dbContextFactory,
-        ReminderHandler reminderHandler,
-        IMemoryCache memoryCache)
+        ReminderHandler reminderHandler)
     {
         _dbContextFactory = dbContextFactory;
         _reminderHandler = reminderHandler;
-        _memoryCache = memoryCache;
     }
 
     public async Task<Reminder?> GetReminder(Guid guid)
@@ -69,22 +65,14 @@ public class ReminderService
 
         if (reminder.ReminderTime - DateTime.UtcNow < TimeSpan.FromMinutes(10))
         {
-            Task.Run(() => ConsumeReminder(reminder), ReminderCanceller.Token);
+            Task.Run(() => _reminderHandler.ConsumeReminder(reminder), ReminderCanceller.Token);
         }
 
         await dbContext.SaveChangesAsync();
         return true;
     }
 
-    private async Task RemoveReminder(Reminder reminder)
-    {
-        await using CatnessDbContext context = await _dbContextFactory.CreateDbContextAsync();
-
-        context.Reminders.Remove(reminder);
-        await context.SaveChangesAsync();
-    }
-
-    private async Task<List<Reminder>> GetUpcomingReminders()
+    public async Task<List<Reminder>> GetUpcomingReminders()
     {
         await using CatnessDbContext dbContext = await _dbContextFactory.CreateDbContextAsync();
 
@@ -96,103 +84,21 @@ public class ReminderService
         return reminders;
     }
 
-    private void CreateNewToken()
+    public class ReminderRemoverService
     {
-        ReminderCanceller = new CancellationTokenSource();
-    }
+        private readonly IDbContextFactory<CatnessDbContext> _dbContextFactory;
 
-    private async Task ConsumeReminder(Reminder reminder)
-    {
-        string key = GetReminderCancellationTokenCacheKey(reminder.ReminderGuid);
-
-        bool reminding = _memoryCache.TryGetValue(key, out _);
-
-        if (reminding)
+        public ReminderRemoverService(IDbContextFactory<CatnessDbContext> dbContextFactory)
         {
-            return;
+            _dbContextFactory = dbContextFactory;
         }
 
-        TimeSpan timeToReminder = reminder.ReminderTime - DateTime.UtcNow;
-
-        if (timeToReminder < TimeSpan.Zero)
+        public async Task RemoveReminder(Reminder reminder)
         {
-            await _reminderHandler.SendReminder(reminder, true);
+            await using CatnessDbContext context = await _dbContextFactory.CreateDbContextAsync();
+
+            context.Reminders.Remove(reminder);
+            await context.SaveChangesAsync();
         }
-        else
-        {
-            CancellationTokenSource cancellationToken = new CancellationTokenSource();
-
-            _memoryCache.Set(key, cancellationToken, timeToReminder);
-            try
-            {
-                await Task.Delay(timeToReminder, cancellationToken.Token);
-                await _reminderHandler.SendReminder(reminder);
-            }
-            catch (OperationCanceledException)
-            {
-                _memoryCache.Remove(key);
-            }
-        }
-
-        await RemoveReminder(reminder);
-    }
-
-
-    public async Task StopReminder(Reminder reminder)
-    {
-        string key = GetReminderCancellationTokenCacheKey(reminder.ReminderGuid);
-        bool reminding = _memoryCache.TryGetValue(key, out CancellationTokenSource? cancellationToken);
-
-        if (!reminding)
-        {
-            await RemoveReminder(reminder);
-        }
-        else
-        {
-            await cancellationToken!.CancelAsync();
-        }
-    }
-
-    public async Task StopAllReminders()
-    {
-        await ReminderCanceller.CancelAsync();
-    }
-
-    public async Task StartReminderHandling()
-    {
-        using PeriodicTimer timer = new PeriodicTimer(TimeSpan.FromMinutes(10));
-        try
-        {
-            do
-            {
-                Console.WriteLine("Started reminder operations");
-
-                CreateNewToken();
-                IEnumerable<Reminder> reminders = await GetUpcomingReminders();
-
-                ParallelOptions options = new ParallelOptions
-                {
-                    MaxDegreeOfParallelism = 50,
-                    CancellationToken = ReminderCanceller.Token
-                };
-
-
-                await Parallel.ForEachAsync(reminders, options, (reminder, _) =>
-                {
-                    Task.Run(() => ConsumeReminder(reminder), ReminderCanceller.Token);
-                    return ValueTask.CompletedTask;
-                }).ConfigureAwait(false);
-
-            } while (await timer.WaitForNextTickAsync(ReminderCanceller.Token));
-        }
-        catch (OperationCanceledException)
-        {
-            Console.WriteLine("Cancelled reminder operation");
-        }
-    }
-
-    private static string GetReminderCancellationTokenCacheKey(Guid reminderId)
-    {
-        return $"reminder-token-{reminderId}";
     }
 }

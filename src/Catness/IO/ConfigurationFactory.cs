@@ -28,9 +28,9 @@ public static class ConfigurationFactory
                 {
                     LastFMKey = "YOUR_LASTFM_API_KEY",
                     SteamKey = "YOUR_STEAM_API_KEY",
-                    OpenAIKey = "YOUR_OPEN_AI_KEY",
-                    TenorKey = "YOUR_TENOR_AI_KEY",
-                    MakesweetKey = "YOUR_MAKESWEET_API_KEY"
+                    TenorKey = "YOUR_TENOR_API_KEY",
+                    MakesweetKey = "YOUR_MAKESWEET_API_KEY",
+                    ImgurKey = "YOUR_IMGUR_API_KEY"
                 },
                 DiscordIDs = new DiscordIDs
                 {

@@ -2,6 +2,7 @@
 using Catness.Enums;
 using Catness.Persistence.Models;
 using Catness.Services.EFServices;
+using Catness.Services.Timed;
 using Catness.Utility;
 using Discord;
 using Discord.Interactions;
@@ -12,10 +13,14 @@ namespace Catness.Modules.Utility;
 public class ReminderModule : InteractionModuleBase
 {
     private readonly ReminderService _reminderService;
+    private readonly ReminderDispatchService _reminderDispatchService;
 
-    public ReminderModule(ReminderService reminderService)
+    public ReminderModule(
+        ReminderService reminderService,
+        ReminderDispatchService reminderDispatchService)
     {
         _reminderService = reminderService;
+        _reminderDispatchService = reminderDispatchService;
     }
 
     [SlashCommand("cancel", "Cancel a reminder")]
@@ -39,7 +44,7 @@ public class ReminderModule : InteractionModuleBase
             return;
         }
 
-        await _reminderService.StopReminder(dbReminder);
+        await _reminderDispatchService.StopReminder(dbReminder);
         await FollowupAsync($"Deleted reminder with id {reminderGuid}", ephemeral: ephemeral);
     }
 
