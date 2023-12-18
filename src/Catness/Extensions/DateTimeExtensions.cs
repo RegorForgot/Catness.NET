@@ -1,6 +1,6 @@
 ﻿using NodaTime;
 
-namespace Catness.Utility;
+namespace Catness.Extensions;
 
 public static class DateTimeExtensions
 {

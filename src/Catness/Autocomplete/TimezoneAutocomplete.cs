@@ -1,6 +1,6 @@
 ﻿// Thanks to Frikandel, the developer of .fmbot, for the below autocomplete handler
 
-using Catness.Utility;
+using Catness.Extensions;
 using Discord;
 using Discord.Interactions;
 using TimeZoneNames;

@@ -1,9 +1,9 @@
 ﻿using System.Text;
 using Catness.Enums;
+using Catness.Extensions;
 using Catness.Persistence.Models;
 using Catness.Services.EntityFramework;
 using Catness.Services.Timed;
-using Catness.Utility;
 using Discord;
 using Discord.Interactions;
 
