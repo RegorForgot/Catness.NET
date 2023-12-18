@@ -3,7 +3,7 @@ using Catness.Persistence;
 using Catness.Persistence.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace Catness.Services.EFServices;
+namespace Catness.Services.EntityFramework;
 
 public class ReminderService
 {

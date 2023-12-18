@@ -1,6 +1,6 @@
 ﻿using Catness.Handlers;
 using Catness.Persistence.Models;
-using Catness.Services.EFServices;
+using Catness.Services.EntityFramework;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace Catness.Services.Timed;

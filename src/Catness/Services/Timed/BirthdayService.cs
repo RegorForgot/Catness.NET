@@ -1,6 +1,6 @@
 ﻿using Catness.Handlers;
 using Catness.Persistence.Models;
-using Catness.Services.EFServices;
+using Catness.Services.EntityFramework;
 
 namespace Catness.Services.Timed;
 
@@ -38,32 +38,33 @@ public class BirthdayService : ITimedService
                 DateOnly databaseDate = DateOnly.Parse(persistence.Value ?? "01-01-0001");
                 DateTime lastDatabaseBirthday = new DateTime(databaseDate, new TimeOnly(0));
 
-                // fuck you 
-                if (persistence.Value is null || DateTime.UtcNow - lastDatabaseBirthday >= TimeSpan.FromDays(1))
+                if (persistence.Value is not null && DateTime.UtcNow - lastDatabaseBirthday < TimeSpan.FromDays(1))
                 {
-                    persistence.Value = today.ToString("O");
-                    await _persistenceService.UpdateKeyValuePair(persistence);
-
-                    List<User> birthdaysToday = await _userService.GetUsersWithFollowersWithBirthday();
-
-                    ParallelOptions options = new ParallelOptions
-                    {
-                        MaxDegreeOfParallelism = 50,
-                        CancellationToken = TokenSource.Token
-                    };
-
-                    await Parallel.ForEachAsync(birthdaysToday, options, (user, _) =>
-                    {
-                        Task.Run(async () =>
-                        {
-                            foreach (Follow follow in user.Followers)
-                            {
-                                await _birthdayHandler.SendBirthday(follow.FollowerId, user.UserId);
-                            }
-                        }, TokenSource.Token);
-                        return ValueTask.CompletedTask;
-                    }).ConfigureAwait(false);
+                    continue;
                 }
+                
+                persistence.Value = today.ToString("O");
+                await _persistenceService.UpdateKeyValuePair(persistence);
+
+                List<User> birthdaysToday = await _userService.GetUsersWithFollowersWithBirthday();
+
+                ParallelOptions options = new ParallelOptions
+                {
+                    MaxDegreeOfParallelism = 50,
+                    CancellationToken = TokenSource.Token
+                };
+
+                await Parallel.ForEachAsync(birthdaysToday, options, (user, _) =>
+                {
+                    Task.Run(async () =>
+                    {
+                        foreach (Follow follow in user.Followers)
+                        {
+                            await _birthdayHandler.SendBirthday(follow.FollowerId, user.UserId);
+                        }
+                    }, TokenSource.Token);
+                    return ValueTask.CompletedTask;
+                }).ConfigureAwait(false);
             } while (await timer.WaitForNextTickAsync(TokenSource.Token));
         }
         catch (OperationCanceledException) { }

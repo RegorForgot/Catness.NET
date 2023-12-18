@@ -1,6 +1,6 @@
 ﻿using System.Text;
 using Catness.Persistence.Models;
-using Catness.Services.EFServices;
+using Catness.Services.EntityFramework;
 using Discord;
 using Discord.Interactions;
 using Microsoft.Extensions.Options;

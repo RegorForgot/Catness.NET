@@ -1,6 +1,6 @@
 using Catness.Persistence;
 using Catness.Persistence.Models;
-using Catness.Services.EFServices;
+using Catness.Services.EntityFramework;
 using Discord;
 using Discord.WebSocket;
 using Microsoft.EntityFrameworkCore;

@@ -1,8 +1,8 @@
 ﻿using RestSharp;
 
-namespace Catness.Services;
+namespace Catness.Clients;
 
-public interface IRestAPIService
+public interface IRestClient
 {
     public RestClient Client { get; }
     public string BaseUrl { get; }

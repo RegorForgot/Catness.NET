@@ -1,7 +1,7 @@
 ﻿using System.Text;
 using Catness.Enums;
 using Catness.Persistence.Models;
-using Catness.Services.EFServices;
+using Catness.Services.EntityFramework;
 using Catness.Services.Timed;
 using Catness.Utility;
 using Discord;

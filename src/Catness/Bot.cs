@@ -1,9 +1,10 @@
-﻿using Catness.Handlers;
+﻿using Catness.Clients;
+using Catness.Handlers;
 using Catness.IO;
 using Catness.Persistence;
 using Catness.Persistence.Models;
 using Catness.Services;
-using Catness.Services.EFServices;
+using Catness.Services.EntityFramework;
 using Catness.Services.Timed;
 using Discord;
 using Discord.Interactions;
@@ -75,7 +76,7 @@ public class Bot
 
 
         serviceCollection
-            .AddSingleton<MakesweetAPIService>()
+            .AddSingleton<MakesweetClient>()
             .AddSingleton<GuildService>()
             .AddSingleton<FollowService>()
             .AddSingleton<UserService>()
@@ -90,6 +91,11 @@ public class Bot
             .AddSingleton<StatusService>()
             .AddSingleton<BirthdayService>()
             .AddSingleton<ReminderHandler>();
+
+        serviceCollection
+            .AddSingleton<DiscordAttachmentClient>()
+            .AddSingleton<MakesweetClient>();
+        
         serviceCollection.AddSingleton(client);
         serviceCollection.AddSingleton(interactionService);
         serviceCollection.AddSingleton<BotService>();

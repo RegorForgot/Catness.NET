@@ -1,6 +1,6 @@
 ﻿using Catness.Enums;
 using Catness.Persistence.Models;
-using Catness.Services.EFServices;
+using Catness.Services.EntityFramework;
 using Discord;
 using Discord.Interactions;
 

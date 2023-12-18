@@ -1,6 +1,6 @@
 ﻿using Catness.Autocomplete;
 using Catness.Persistence.Models;
-using Catness.Services.EFServices;
+using Catness.Services.EntityFramework;
 using Discord.Interactions;
 using NodaTime;
 
