@@ -23,9 +23,9 @@ public class APIKeys
 {
     public string LastFMKey { get; set; }
     public string SteamKey { get; set; }
-    public string OpenAIKey { get; set; }
     public string TenorKey { get; set; }
     public string MakesweetKey { get; set; }
+    public string ImgurKey { get; set; }
 }
 
 public class DiscordIDs
