@@ -10,6 +10,5 @@ public class GuildUser
     public ulong Experience { get; set; }
     
     public Guild Guild { get; set; }
-    klsdfklsdjf
     public User User { get; set; }
 }
