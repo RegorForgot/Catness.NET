@@ -55,6 +55,7 @@ public class BotHandler
         _client.Disconnected += OnDisconnected;
         _client.Connected += OnConnected;
         _client.Ready += OnReady;
+        _client.ButtonExecuted += OnButtonClicked;
 
         foreach (ILogProvider logProvider in _logProviders)
         {
@@ -104,6 +105,12 @@ public class BotHandler
     private async Task OnInteractionCreated(SocketInteraction interaction)
     {
         SocketInteractionContext context = new SocketInteractionContext(_client, interaction);
+        await _interactionService.ExecuteCommandAsync(context, _serviceProvider);
+    }
+
+    private async Task OnButtonClicked(SocketMessageComponent component)
+    {
+        SocketInteractionContext context = new SocketInteractionContext(_client, component);
         await _interactionService.ExecuteCommandAsync(context, _serviceProvider);
     }
 }

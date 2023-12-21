@@ -35,4 +35,8 @@
       <ProjectReference Include="..\Catness.Persistence\Catness.Persistence.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Assets\" />
+    </ItemGroup>
+
 </Project>
