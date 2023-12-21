@@ -1,6 +1,7 @@
 ﻿using Catness.Clients;
 using Catness.Handlers;
 using Catness.IO;
+using Catness.Modules.Social;
 using Catness.Persistence;
 using Catness.Persistence.Models;
 using Catness.Services;
@@ -84,6 +85,7 @@ public class Bot
             .AddSingleton<ChannelService>()
             .AddSingleton<BotPersistenceService>()
             .AddSingleton<ReminderDispatchService>()
+            .AddSingleton<LevelLeaderboardModule>()
             .AddSingleton<ReminderService.ReminderRemoverService>()
             .AddSingleton<UserHandler>()
             .AddSingleton<BotHandler>()

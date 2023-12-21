@@ -89,4 +89,21 @@ public class GuildService
         context.GuildUsers.Update(guildUser);
         await context.SaveChangesAsync();
     }
+
+    public async Task<List<GuildUser>> GetUsersSortedLevel(
+        ulong guildId,
+        int startIndex = 0,
+        int numberOfItems = 10)
+    {
+        await using CatnessDbContext context = await _dbContextFactory.CreateDbContextAsync();
+
+        return await context.GuildUsers
+            .Where(g => g.GuildId == guildId)
+            .Where(g => !g.IsLevelBlacklisted)
+            .Skip(startIndex)
+            .Take(numberOfItems)
+            .OrderByDescending(g => g.Level)
+            .ThenByDescending(g => g.Experience)
+            .ToListAsync();
+    }
 }
