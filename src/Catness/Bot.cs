@@ -85,7 +85,6 @@ public class Bot
             .AddSingleton<ChannelService>()
             .AddSingleton<BotPersistenceService>()
             .AddSingleton<ReminderDispatchService>()
-            .AddSingleton<LevelLeaderboardModule>()
             .AddSingleton<ReminderService.ReminderRemoverService>()
             .AddSingleton<UserHandler>()
             .AddSingleton<BotHandler>()
@@ -97,7 +96,7 @@ public class Bot
         serviceCollection
             .AddSingleton<DiscordAttachmentClient>()
             .AddSingleton<MakesweetClient>();
-        
+
         serviceCollection.AddSingleton(client);
         serviceCollection.AddSingleton(interactionService);
         serviceCollection.AddSingleton<BotService>();
