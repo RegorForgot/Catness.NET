@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using Catness.Extensions;
 using Catness.Persistence.Models;
 using Catness.Services.EntityFramework;
 using Discord;
@@ -54,6 +55,6 @@ public class RepModule : InteractionModuleBase
         contextUser.LastRepTime = now;
 
         await _userService.UpdateUser(otherUser, contextUser);
-        await RespondAsync($"Gave one rep to <@{user.Id}>!");
+        await RespondAsync($"Gave one rep to {user.Id.GetPingString()}!");
     }
 }

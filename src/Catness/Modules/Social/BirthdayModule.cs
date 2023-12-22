@@ -1,4 +1,5 @@
 ﻿using Catness.Enums;
+using Catness.Extensions;
 using Catness.Persistence.Models;
 using Catness.Services.EntityFramework;
 using Discord;
@@ -73,7 +74,9 @@ public class BirthdayModule : InteractionModuleBase
         }
         else
         {
-            await RespondAsync($"<@{user.Id}>'s birthday is on {userDb.Birthday}!", allowedMentions: AllowedMentions.None);
+            await RespondAsync(
+                $"{user.Id.GetPingString()}'s birthday is on {userDb.Birthday}!",
+                allowedMentions: AllowedMentions.None);
         }
     }
 

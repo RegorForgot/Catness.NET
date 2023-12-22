@@ -10,6 +10,7 @@ using Catness.Services.Timed;
 using Discord;
 using Discord.Interactions;
 using Discord.WebSocket;
+using Fergun.Interactive;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -72,9 +73,14 @@ public class Bot
             EnableAutocompleteHandlers = true
         };
 
+        InteractiveConfig interactiveConfig = new InteractiveConfig()
+        {
+            DefaultTimeout = TimeSpan.FromMinutes(10)
+        };
+
         DiscordSocketClient client = new DiscordSocketClient(clientConfig);
         InteractionService interactionService = new InteractionService(client, interactionConfig);
-
+        InteractiveService interactiveService = new InteractiveService(client, interactiveConfig);
 
         serviceCollection
             .AddSingleton<MakesweetClient>()
@@ -99,6 +105,7 @@ public class Bot
 
         serviceCollection.AddSingleton(client);
         serviceCollection.AddSingleton(interactionService);
+        serviceCollection.AddSingleton(interactiveService);
         serviceCollection.AddSingleton<BotService>();
 
         serviceCollection.AddDbContextFactory<CatnessDbContext>(optionsBuilder =>

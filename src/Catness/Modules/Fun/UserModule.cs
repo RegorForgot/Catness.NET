@@ -35,12 +35,7 @@ public class UserModule : InteractionModuleBase
                 "Server",
                 $"avatar_guild_{user.Id}",
                 guildAvatarStyle,
-                disabled: !hasGuildAvatar || currentMode == AvatarDisplayType.Guild)
-            .WithButton(
-                null,
-                "close_interaction",
-                ButtonStyle.Danger,
-                EmoteCollection.CatnessEmotes.FirstOrDefault(emote => emote.Name == "close"));
+                disabled: !hasGuildAvatar || currentMode == AvatarDisplayType.Guild);
 
         return builder;
     }
@@ -121,13 +116,5 @@ public class UserModule : InteractionModuleBase
                 properties.Components = GetButtonComponentBuilder(user, AvatarDisplayType.Default).Build();
             }
         );
-    }
-
-    [ComponentInteraction("close_interaction")]
-    public async Task CloseInteraction()
-    {
-        IComponentInteraction interaction = (IComponentInteraction)Context.Interaction;
-
-        await interaction.Message.DeleteAsync();
     }
 }

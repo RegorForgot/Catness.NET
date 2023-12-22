@@ -1,4 +1,5 @@
-﻿using Discord;
+﻿using Catness.Extensions;
+using Discord;
 using Discord.Net;
 using Discord.WebSocket;
 
@@ -18,7 +19,7 @@ public class BirthdayHandler
     {
         Embed embed = new EmbedBuilder()
             .WithTitle($"Birthday!")
-            .WithDescription($"It's <@{followedId}>'s birthday!\nWish them a happy birthday!")
+            .WithDescription($"It's {followedId.GetPingString()}'s birthday!\nWish them a happy birthday!")
             .WithCurrentTimestamp()
             .Build();
 
@@ -26,7 +27,8 @@ public class BirthdayHandler
         {
             try
             {
-                await user.SendMessageAsync($"<@{followerId}>",
+                await user.SendMessageAsync(
+                    followedId.GetPingString(),
                     embed: embed,
                     allowedMentions: new AllowedMentions(AllowedMentionTypes.Users));
             }

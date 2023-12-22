@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using Catness.Extensions;
 using Catness.Persistence.Models;
 using Catness.Services.EntityFramework;
 using Discord;
@@ -43,11 +44,11 @@ public class FollowModule : InteractionModuleBase
         if (follow is null)
         {
             await _followService.AddFollow(Context.User.Id, user.Id);
-            await RespondAsync($"Started following <@{user.Id}>!", allowedMentions: new AllowedMentions(AllowedMentionTypes.Users));
+            await RespondAsync($"Started following {user.Id.GetPingString()}!", allowedMentions: new AllowedMentions(AllowedMentionTypes.Users));
         }
         else
         {
-            await RespondAsync($"You are already following <@{user.Id}>.", allowedMentions: AllowedMentions.None);
+            await RespondAsync($"You are already following {user.Id.GetPingString()}.", allowedMentions: AllowedMentions.None);
         }
     }
 
@@ -59,14 +60,14 @@ public class FollowModule : InteractionModuleBase
 
         if (follow is null)
         {
-            await RespondAsync($"You are not following <@{user.Id}>.",
+            await RespondAsync($"You are not following {user.Id.GetPingString()}.",
                 allowedMentions: new AllowedMentions(AllowedMentionTypes.Users),
                 ephemeral: true);
         }
         else
         {
             await _followService.RemoveFollow(follow);
-            await RespondAsync($"You are no longer following <@{user.Id}>.",
+            await RespondAsync($"You are no longer following {user.Id.GetPingString()}.",
                 allowedMentions: AllowedMentions.None,
                 ephemeral: true);
         }
@@ -90,7 +91,7 @@ public class FollowModule : InteractionModuleBase
 
             foreach (Follow follow in user.Following)
             {
-                builder.AppendLine($"{count++}. <@{follow.FollowedId}>");
+                builder.AppendLine($"{count++}. {follow.FollowedId.GetPingString()}");
             }
 
             Embed embed = new EmbedBuilder()
@@ -128,7 +129,7 @@ public class FollowModule : InteractionModuleBase
             Embed embed = new EmbedBuilder()
                 .WithTitle("List of users you are followed by")
                 .WithDescription(builder.ToString())
-                .WithFooter($"Followed by <@{user.Followers.Count}> users")
+                .WithFooter($"Followed by {user.Followers.Count} users")
                 .WithCurrentTimestamp()
                 .Build();
 

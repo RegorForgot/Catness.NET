@@ -1,4 +1,5 @@
-﻿using Catness.Persistence.Models;
+﻿using Catness.Extensions;
+using Catness.Persistence.Models;
 using Catness.Services.EntityFramework;
 using Discord;
 using Discord.Net;
@@ -15,7 +16,7 @@ public class ReminderHandler
 
     public ReminderHandler(
         DiscordSocketClient client,
-        ReminderService.ReminderRemoverService removerService, 
+        ReminderService.ReminderRemoverService removerService,
         IMemoryCache memoryCache)
     {
         _client = client;
@@ -43,7 +44,10 @@ public class ReminderHandler
             {
                 try
                 {
-                    await user.SendMessageAsync($"<@{reminder.UserId}>", embed: embed, allowedMentions: new AllowedMentions(AllowedMentionTypes.Users));
+                    await user.SendMessageAsync(
+                        reminder.UserId.GetPingString(),
+                        embed: embed,
+                        allowedMentions: new AllowedMentions(AllowedMentionTypes.Users));
                 }
                 catch (HttpException) { }
             }
@@ -55,13 +59,16 @@ public class ReminderHandler
 
                 try
                 {
-                    await channel.SendMessageAsync($"<@{reminder.UserId}>", embed: embed, allowedMentions: new AllowedMentions(AllowedMentionTypes.Users));
+                    await channel.SendMessageAsync(
+                        $"{reminder.UserId.GetPingString()}",
+                        embed: embed,
+                        allowedMentions: new AllowedMentions(AllowedMentionTypes.Users));
                 }
                 catch (HttpException) { }
             }
         }
     }
-    
+
     public async Task ConsumeReminder(Reminder reminder)
     {
         string key = GetReminderCancellationTokenCacheKey(reminder.ReminderGuid);
@@ -97,8 +104,8 @@ public class ReminderHandler
 
         await _removerService.RemoveReminder(reminder);
     }
-    
-    
+
+
     public static string GetReminderCancellationTokenCacheKey(Guid reminderId)
     {
         return $"reminder-token-{reminderId}";
