@@ -1,4 +1,5 @@
 ﻿using Discord;
+using Fergun.Interactive.Pagination;
 
 namespace Catness.Utilities;
 
@@ -37,6 +38,17 @@ public static class EmoteCollection
         { "bot", Emote.Parse("<:bot:1078091845051088979>") },
         { "nitro", Emote.Parse("<:nitro:1078094211351584928>") },
         { "github", Emote.Parse("<:github:1114661850118897806>") },
-        { "confirm", Emote.Parse("<:confirm:1175842297481547889>") }
+        { "confirm", Emote.Parse("<:confirm:1175842297481547889>") },
+        { "first", Emote.Parse("<:first:1187785002625278112>") },
+        { "last", Emote.Parse("<:last:1187785003933896734>") }
     };
+
+    public static readonly IDictionary<IEmote, PaginatorAction> PaginatorButtons =
+        new Dictionary<IEmote, PaginatorAction>
+        {
+            { CatnessEmotes["page_left"], PaginatorAction.Backward },
+            { CatnessEmotes["page_right"], PaginatorAction.Forward },
+            { CatnessEmotes["first"], PaginatorAction.SkipToStart },
+            { CatnessEmotes["last"], PaginatorAction.SkipToEnd }
+        };
 }

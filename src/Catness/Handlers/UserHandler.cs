@@ -84,7 +84,7 @@ public class UserHandler
             guildUser.Experience = nextExp - expToNextLevel;
             Embed embed = new EmbedBuilder()
                 .WithTitle("Level up!")
-                .WithDescription($"Congratulations! You have levelled up {level + 1}")
+                .WithDescription($"Congratulations! You have levelled up to level `{level + 1}`")
                 .Build();
 
             await message.Channel.SendMessageAsync(

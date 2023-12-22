@@ -20,7 +20,7 @@ public class FollowService
 
         return await context.Follows
             .AsNoTracking()
-            .FirstOrDefaultAsync(user => user.FollowedId == followerId && user.FollowerId == followedId);
+            .FirstOrDefaultAsync(user => user.FollowedId == followedId && user.FollowerId == followerId);
     }
 
     public async Task AddFollow(ulong followerId, ulong followedId)

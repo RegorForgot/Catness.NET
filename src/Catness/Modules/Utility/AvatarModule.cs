@@ -1,13 +1,11 @@
-﻿using System.ComponentModel;
-using Catness.Builders;
+﻿using Catness.Builders;
 using Catness.Enums;
-using Catness.Utilities;
 using Discord;
 using Discord.Interactions;
 
-namespace Catness.Modules.Fun;
+namespace Catness.Modules.Utility;
 
-public class UserModule : InteractionModuleBase
+public class AvatarModule : InteractionModuleBase
 {
     private ComponentBuilder GetButtonComponentBuilder(IUser user, AvatarDisplayType currentMode)
     {

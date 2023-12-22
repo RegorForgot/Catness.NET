@@ -1,7 +1,6 @@
 ﻿using Catness.Clients;
 using Catness.Handlers;
 using Catness.IO;
-using Catness.Modules.Social;
 using Catness.Persistence;
 using Catness.Persistence.Models;
 using Catness.Services;
@@ -11,6 +10,7 @@ using Discord;
 using Discord.Interactions;
 using Discord.WebSocket;
 using Fergun.Interactive;
+using Fergun.Interactive.Pagination;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -97,6 +97,7 @@ public class Bot
             .AddSingleton<BirthdayHandler>()
             .AddSingleton<StatusService>()
             .AddSingleton<BirthdayService>()
+            .AddSingleton<PaginatorService>()
             .AddSingleton<ReminderHandler>();
 
         serviceCollection

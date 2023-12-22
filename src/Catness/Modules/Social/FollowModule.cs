@@ -1,9 +1,11 @@
 ﻿using System.Text;
 using Catness.Extensions;
 using Catness.Persistence.Models;
+using Catness.Services;
 using Catness.Services.EntityFramework;
 using Discord;
 using Discord.Interactions;
+using Fergun.Interactive;
 
 namespace Catness.Modules.Social;
 
@@ -12,13 +14,16 @@ public class FollowModule : InteractionModuleBase
 {
     private readonly UserService _userService;
     private readonly FollowService _followService;
+    private readonly PaginatorService _paginatorService;
 
     public FollowModule(
         UserService userService,
-        FollowService followService)
+        FollowService followService,
+        PaginatorService paginatorService)
     {
         _userService = userService;
         _followService = followService;
+        _paginatorService = paginatorService;
     }
 
     [SlashCommand("add", "Follow another user")]
@@ -85,23 +90,29 @@ public class FollowModule : InteractionModuleBase
         }
         else
         {
-            StringBuilder builder = new StringBuilder();
+            List<Follow[]> followPages = user.Following.Chunk(15).ToList();
+            List<PageBuilder> pageBuilders = [];
 
             int count = 1;
 
-            foreach (Follow follow in user.Following)
+            foreach (Follow[] page in followPages)
             {
-                builder.AppendLine($"{count++}. {follow.FollowedId.GetPingString()}");
+                StringBuilder builder = new StringBuilder();
+
+                foreach (Follow follow in page)
+                {
+                    builder.AppendLine($"{count++}. {follow.FollowedId.GetPingString()}");
+                }
+
+                pageBuilders.Add(new PageBuilder()
+                    .WithTitle("List of users you are following")
+                    .WithDescription(builder.ToString())
+                    .WithFooter($"Following {user.Following.Count} users")
+                    .WithCurrentTimestamp()
+                );
             }
 
-            Embed embed = new EmbedBuilder()
-                .WithTitle("List of users you are following")
-                .WithDescription(builder.ToString())
-                .WithFooter($"Following {user.Following.Count} users")
-                .WithCurrentTimestamp()
-                .Build();
-
-            await RespondAsync(embed: embed);
+            await _paginatorService.SendPaginator(pageBuilders, Context);
         }
     }
 
@@ -117,23 +128,29 @@ public class FollowModule : InteractionModuleBase
         }
         else
         {
-            StringBuilder builder = new StringBuilder();
+            List<Follow[]> followPages = user.Followers.Chunk(15).ToList();
+            List<PageBuilder> pageBuilders = [];
 
             int count = 1;
 
-            foreach (Follow follow in user.Followers)
+            foreach (Follow[] page in followPages)
             {
-                builder.AppendLine($"{count++}. {follow.FollowerId}");
+                StringBuilder builder = new StringBuilder();
+
+                foreach (Follow follow in page)
+                {
+                    builder.AppendLine($"{count++}. {follow.FollowerId.GetPingString()}");
+                }
+
+                pageBuilders.Add(new PageBuilder()
+                    .WithTitle("List of followers")
+                    .WithDescription(builder.ToString())
+                    .WithFooter($"Followed by {user.Followers.Count} users")
+                    .WithCurrentTimestamp()
+                );
             }
 
-            Embed embed = new EmbedBuilder()
-                .WithTitle("List of users you are followed by")
-                .WithDescription(builder.ToString())
-                .WithFooter($"Followed by {user.Followers.Count} users")
-                .WithCurrentTimestamp()
-                .Build();
-
-            await RespondAsync(embed: embed);
+            await _paginatorService.SendPaginator(pageBuilders, Context);
         }
     }
 }
