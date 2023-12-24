@@ -8,15 +8,11 @@ namespace Catness.Clients;
 
 public class MakesweetClient : IRestClient
 {
-    private readonly DiscordAttachmentClient _attachmentClient;
     public RestClient Client { get; }
     public string BaseUrl => "https://api.makesweet.com/make";
 
-    public MakesweetClient(
-        IOptions<BotConfiguration> botConfigurationOptions,
-        DiscordAttachmentClient attachmentClient)
+    public MakesweetClient(IOptions<BotConfiguration> botConfigurationOptions)
     {
-        _attachmentClient = attachmentClient;
         Client = new RestClient(BaseUrl);
         BotConfiguration botConfiguration = botConfigurationOptions.Value;
         Client.AddDefaultHeader("Authorization", botConfiguration.APIKeys.MakesweetKey);

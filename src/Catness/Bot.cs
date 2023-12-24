@@ -1,6 +1,7 @@
 ﻿using Catness.Clients;
 using Catness.Handlers;
 using Catness.IO;
+using Catness.Modules.Fun;
 using Catness.Persistence;
 using Catness.Persistence.Models;
 using Catness.Services;
@@ -10,7 +11,6 @@ using Discord;
 using Discord.Interactions;
 using Discord.WebSocket;
 using Fergun.Interactive;
-using Fergun.Interactive.Pagination;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -102,7 +102,8 @@ public class Bot
 
         serviceCollection
             .AddSingleton<DiscordAttachmentClient>()
-            .AddSingleton<MakesweetClient>();
+            .AddSingleton<MakesweetClient>()
+            .AddSingleton<LastfmClient>();
 
         serviceCollection.AddSingleton(client);
         serviceCollection.AddSingleton(interactionService);
