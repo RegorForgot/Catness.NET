@@ -25,7 +25,7 @@ public class LastfmClient : IRestClient
         Client.AddDefaultHeader("User-Agent", "Catness.NET");
     }
 
-    public async Task<RecentTrackResponse> GetLastTrack(string username)
+    public async Task<RecentTrackResponse> GetLastTrackRequest(string username)
     {
         RestRequest request = new RestRequest();
 
@@ -41,7 +41,7 @@ public class LastfmClient : IRestClient
         return GetResponse<RecentTrackResponse>(response);
     }
 
-    public async Task<UserInfoResponse> GetUserInfo(string username)
+    public async Task<UserInfoResponse> GetUserInfoRequest(string username)
     {
         RestRequest request = new RestRequest();
 
@@ -56,7 +56,7 @@ public class LastfmClient : IRestClient
         return GetResponse<UserInfoResponse>(response);
     }
 
-    public async Task<FriendsResponse> GetUserFriends(string username, int pageNumber = 1)
+    public async Task<FriendsResponse> GetUserFriendsRequest(string username, int pageNumber)
     {
         RestRequest request = new RestRequest();
 
@@ -68,6 +68,54 @@ public class LastfmClient : IRestClient
 
         RestResponse response = await Client.ExecuteGetAsync(request).ConfigureAwait(false);
         return GetResponse<FriendsResponse>(response);
+    }
+
+    public async static Task<T?> GetLastfmResponse<T>(Func<string, Task<T>> function, string username)
+        where T : class, ILastfmAPIResponse
+    {
+        int exceptionCounter = 0;
+
+        ILastfmAPIResponse? response = null;
+
+        while (exceptionCounter < 3 && response is null)
+        {
+            try
+            {
+                response = await function.Invoke(username);
+                break;
+            }
+            catch (LastfmAPIException ex) when
+                (ex.ErrorCode is LastfmErrorCode.Temporary or LastfmErrorCode.OperationFail)
+            {
+                exceptionCounter++;
+            }
+        }
+
+        return response as T;
+    }
+
+    public static async Task<T?> GetLastfmResponse<T>(Func<string, int, Task<T>> function, string username, int pageNumber)
+        where T : class, ILastfmAPIResponse
+    {
+        int exceptionCounter = 0;
+
+        ILastfmAPIResponse? response = null;
+
+        while (exceptionCounter < 3 && response is null)
+        {
+            try
+            {
+                response = await function.Invoke(username, pageNumber);
+                break;
+            }
+            catch (LastfmAPIException ex) when
+                (ex.ErrorCode is LastfmErrorCode.Temporary or LastfmErrorCode.OperationFail)
+            {
+                exceptionCounter++;
+            }
+        }
+
+        return response as T;
     }
 
     private static T GetResponse<T>(RestResponseBase response) where T : ILastfmAPIResponse

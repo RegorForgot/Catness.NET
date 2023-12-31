@@ -25,9 +25,6 @@ public record RecentTrackResponse : ILastfmAPIResponse
 
 public record Track
 {
-    private const string DefaultSingleCover
-        = "https://lastfm.freetls.fastly.net/i/u/300x300/4128a6eb29f94943c9d206c08e625904.png";
-
     [JsonProperty("name")]
     public string Name { get; init; } = string.Empty;
 
@@ -60,19 +57,8 @@ public record Track
 
     public record AlbumImage
     {
-        private string _url = DefaultSingleCover;
         [JsonProperty("#text")]
-        public string URL
-        {
-            get => _url;
-            init
-            {
-                if (!string.IsNullOrEmpty(value))
-                {
-                    _url = value;
-                }
-            }
-        }
+        public string URL { get; init; }
     }
 
     public record TrackNowPlaying

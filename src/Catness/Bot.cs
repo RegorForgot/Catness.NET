@@ -1,7 +1,6 @@
 ﻿using Catness.Clients;
 using Catness.Handlers;
 using Catness.IO;
-using Catness.Modules.Fun;
 using Catness.Persistence;
 using Catness.Persistence.Models;
 using Catness.Services;
