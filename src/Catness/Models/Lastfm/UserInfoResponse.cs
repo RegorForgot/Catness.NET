@@ -2,12 +2,16 @@ using Newtonsoft.Json;
 
 namespace Catness.Models.Lastfm;
 
-public record UserInfoResponse : ILastfmAPIResponse { }
+public record UserInfoResponse : ILastfmAPIResponse
+{
+    [JsonProperty("user")]
+    public User User { get; init; }
+}
 
 public record User
 {
-    [JsonProperty("age")]
-    public string Age { get; init; }
+    [JsonProperty("realname")]
+    public string RealName { get; init; }
 
     [JsonProperty("subscriber")]
     public string IsLastfmPro { get; init; }
@@ -31,7 +35,7 @@ public record User
     public RegistrationTime Registered { get; init; }
 
     [JsonProperty("country")]
-    public string Country { get; init; }
+    public string? Country { get; init; }
 
     public record UserImage
     {
