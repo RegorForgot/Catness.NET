@@ -46,9 +46,9 @@ public static class EmoteCollection
     public static readonly IDictionary<IEmote, PaginatorAction> PaginatorButtons =
         new Dictionary<IEmote, PaginatorAction>
         {
+            { CatnessEmotes["first"], PaginatorAction.SkipToStart },
             { CatnessEmotes["page_left"], PaginatorAction.Backward },
             { CatnessEmotes["page_right"], PaginatorAction.Forward },
-            { CatnessEmotes["first"], PaginatorAction.SkipToStart },
             { CatnessEmotes["last"], PaginatorAction.SkipToEnd }
         };
 }

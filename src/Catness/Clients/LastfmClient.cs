@@ -64,6 +64,7 @@ public class LastfmClient : IRestClient
         request.AddParameter("method", GetFriendsSignature);
         request.AddParameter("user", username);
         request.AddParameter("page", pageNumber);
+        request.AddParameter("limit", 120);
         request.AddParameter("api_key", _botConfiguration.APIKeys.LastFMKey);
 
         RestResponse response = await Client.ExecuteGetAsync(request).ConfigureAwait(false);

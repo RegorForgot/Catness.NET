@@ -16,6 +16,7 @@ public class PaginatorService
 
     public async Task SendPaginator(IList<PageBuilder> pageBuilders, IInteractionContext context)
     {
-        await _interactiveService.SendPaginatorAsync(pageBuilders.BuildStaticPaginator(context), context.Interaction);
+        await _interactiveService.SendPaginatorAsync(pageBuilders.BuildStaticPaginator(context), 
+            context.Interaction);
     }
 }

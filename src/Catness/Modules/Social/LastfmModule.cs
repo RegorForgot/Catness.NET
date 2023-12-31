@@ -2,10 +2,14 @@
 using Catness.Clients;
 using Catness.Enums;
 using Catness.Exceptions;
+using Catness.Extensions;
 using Catness.Models.Lastfm;
+using Catness.Persistence.Models;
+using Catness.Services;
 using Catness.Services.EntityFramework;
 using Discord;
 using Discord.Interactions;
+using Fergun.Interactive;
 using User = Catness.Persistence.Models.User;
 
 namespace Catness.Modules.Social;
@@ -14,12 +18,16 @@ namespace Catness.Modules.Social;
 public class LastfmModule : InteractionModuleBase
 {
     private readonly UserService _userService;
+    private readonly PaginatorService _paginatorService;
     private readonly LastfmClient _lastfmClient;
 
-    public LastfmModule(UserService userService,
+    public LastfmModule(
+        UserService userService,
+        PaginatorService paginatorService,
         LastfmClient lastfmClient)
     {
         _userService = userService;
+        _paginatorService = paginatorService;
         _lastfmClient = lastfmClient;
     }
 
@@ -67,6 +75,96 @@ public class LastfmModule : InteractionModuleBase
         await RespondAsync($"Updated Last.fm username to {lastfmUsername}!",
             ephemeral: true);
     }
+
+    [SlashCommand("friends", "get your list of friends")]
+    public async Task GetFriends(string? username = null)
+    {
+        if (username is null)
+        {
+            User? user = await _userService.GetUser(Context.User.Id);
+
+            username = user?.LastfmUsername;
+            if (username is null)
+            {
+                await RespondAsync("Please input a Last.fm username or set your own using " +
+                                   @"`\lastfm link`", ephemeral: true);
+                return;
+            }
+        }
+
+        FriendsResponse? friendsResponse = null;
+        try
+        {
+            friendsResponse = await LastfmClient.GetLastfmResponse(_lastfmClient.GetUserFriendsRequest, username, 1);
+
+            if (friendsResponse is null)
+            {
+                await RespondAsync("There is an error with Last.fm, please try again later.",
+                    ephemeral: true);
+                return;
+            }
+        }
+        catch (LastfmAPIException ex)
+        {
+            if (ex.ErrorCode == LastfmErrorCode.InvalidParam)
+            {
+                await RespondAsync("A user does not exist with this name, or they do not have friends.",
+                    ephemeral: true);
+                return;
+            }
+
+            await RespondAsync($"An error occured, please try again: {ex.ErrorCode}: {ex.Message}",
+                ephemeral: true);
+        }
+
+        bool success = int.TryParse(friendsResponse?.FriendsContainer.UserFriends.PageCount, out int pageCount);
+        if (success)
+        {
+            try
+            {
+                List<FriendUser[]> friendPages = friendsResponse?.FriendsContainer.Friends.Chunk(24).ToList()!;
+                List<PageBuilder> pageBuilders = [];
+
+                foreach (FriendUser[] page in friendPages)
+                {
+                    List<EmbedFieldBuilder> embedFieldBuilders = new List<EmbedFieldBuilder>();
+                
+                    foreach (FriendUser friend in page)
+                    {
+                        bool isSubscribed = friend.IsLastfmPro == "1";
+
+                        StringBuilder builder = new StringBuilder();
+                        if (isSubscribed)
+                        {
+                            builder.Append("🔷 ");
+                        }
+                        builder.Append(friend.Username);
+
+                        EmbedFieldBuilder embedFieldBuilder = new EmbedFieldBuilder()
+                            .WithName(builder.ToString())
+                            .WithValue(string.IsNullOrEmpty(friend.RealName) ? friend.Username : friend.RealName)
+                            .WithIsInline(true);
+
+                        embedFieldBuilders.Add(embedFieldBuilder);
+                    }
+
+                    pageBuilders.Add(new PageBuilder()
+                        .WithTitle($"List of {username}'s Last.fm friends")
+                        .WithFields(embedFieldBuilders)
+                        .WithFooter($"Has {friendsResponse?.FriendsContainer.UserFriends.FriendCount}")
+                        .WithCurrentTimestamp()
+                    );
+                }
+                
+                await _paginatorService.SendPaginator(pageBuilders, Context);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"{ex.Message} \n {ex.StackTrace} \n {ex.Source}");
+            }
+        }
+    }
+
 
     [SlashCommand("now-playing", "get your current listening")]
     public async Task GetCurrentPlaying(

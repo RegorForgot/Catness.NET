@@ -18,6 +18,9 @@ public record FriendsContainer
 
     public record FriendInfo
     {
+        [JsonProperty("totalPages")]
+        public string PageCount { get; init; }
+
         [JsonProperty("page")]
         public string PageNumber { get; init; }
 
@@ -34,6 +37,6 @@ public record FriendUser
     [JsonProperty("realname")]
     public string RealName { get; init; }
 
-    [JsonProperty("susbcriber")]
+    [JsonProperty("subscriber")]
     public string IsLastfmPro { get; init; }
 }
