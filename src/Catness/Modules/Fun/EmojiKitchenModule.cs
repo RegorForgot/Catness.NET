@@ -30,7 +30,7 @@ public class EmojiKitchenModule : InteractionModuleBase
                 return;
             }
 
-            bool success = _memoryCache.TryGetValue("emoji-kitchen", out IEnumerable<EmojiCombination>? emojiCombinations);
+            bool success = _memoryCache.TryGetValue("emoji-kitchen", out List<EmojiCombination>? emojiCombinations);
             if (success)
             {
                 string? url = emojiCombinations!
@@ -52,7 +52,11 @@ public class EmojiKitchenModule : InteractionModuleBase
                 }
 
                 Embed embed = new EmbedBuilder()
-                    .WithImageUrl(url)
+                    .WithTitle($"Combination of {leftEmoji} and {rightEmoji}")
+                    .WithThumbnailUrl(url)
+                    .WithDescription("Changing the order of the emojis\nmay yield different results!")
+                    .WithCurrentTimestamp()
+                    .WithColor(Color.Teal)
                     .Build();
                 await RespondAsync(embed: embed);
             }

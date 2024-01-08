@@ -35,7 +35,7 @@ public class ReminderDispatchService : ITimedService
         {
             do
             {
-                Console.WriteLine("Started reminder operations");
+                Console.WriteLine("Started reminder operations...");
 
                 IEnumerable<Reminder> reminders = await _reminderService.GetUpcomingReminders();
                 ParallelOptions options = new ParallelOptions

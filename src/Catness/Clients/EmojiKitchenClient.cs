@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using Catness.Extensions;
 using Catness.Models.EmojiKitchen;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -17,7 +18,7 @@ public class EmojiKitchenClient : IRestClient
         Client.AddDefaultHeader("User-Agent", "Catness.NET");
     }
 
-    public async Task<IEnumerable<EmojiCombination>?> GetEmojiKitchenDictionary()
+    public async Task<HashSet<EmojiCombination>?> GetEmojiCombinationSet()
     {
         RestRequest request = new RestRequest
         {
@@ -42,11 +43,11 @@ public class EmojiKitchenClient : IRestClient
         JObject dataDictionary = (JObject)emojiData["data"];
         var test = dataDictionary.ToObject<Dictionary<string, Dictionary<string, object>>>();
 
-        var emojiCombinations = new List<EmojiCombination>();
+        var emojiCombinations = new HashSet<EmojiCombination>();
         
         foreach (JArray array in test!.Keys.Select(key => (JArray)test[key]["combinations"]))
         {
-            emojiCombinations.AddRange(array.ToObject<List<EmojiCombination>>() ?? []);
+            emojiCombinations.TryAddAll(array.ToObject<HashSet<EmojiCombination>>() ?? []);
         }
 
         return emojiCombinations;
