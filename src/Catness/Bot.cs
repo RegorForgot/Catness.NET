@@ -5,7 +5,6 @@ using Catness.Persistence;
 using Catness.Persistence.Models;
 using Catness.Services;
 using Catness.Services.EntityFramework;
-using Catness.Services.Timed;
 using Discord;
 using Discord.Interactions;
 using Discord.WebSocket;
@@ -89,20 +88,26 @@ public class Bot
             .AddSingleton<ReminderService>()
             .AddSingleton<ChannelService>()
             .AddSingleton<BotPersistenceService>()
-            .AddSingleton<ReminderDispatchService>()
             .AddSingleton<ReminderService.ReminderRemoverService>()
             .AddSingleton<UserHandler>()
             .AddSingleton<BotHandler>()
             .AddSingleton<BirthdayHandler>()
-            .AddSingleton<StatusService>()
-            .AddSingleton<BirthdayService>()
             .AddSingleton<PaginatorService>()
             .AddSingleton<ReminderHandler>();
+        
+        serviceCollection.Scan(scan => scan
+            .FromAssemblyOf<Bot>()
+            .AddClasses(classes => classes.InNamespaces("Catness.Services.Timed"))
+            .UsingRegistrationStrategy(RegistrationStrategy.Append)
+            .AsSelfWithInterfaces()
+            .WithSingletonLifetime()
+        );
 
         serviceCollection
             .AddSingleton<DiscordAttachmentClient>()
             .AddSingleton<MakesweetClient>()
-            .AddSingleton<LastfmClient>();
+            .AddSingleton<LastfmClient>()
+            .AddSingleton<EmojiKitchenClient>();
 
         serviceCollection.AddSingleton(client);
         serviceCollection.AddSingleton(interactionService);

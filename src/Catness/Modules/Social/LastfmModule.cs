@@ -1,17 +1,13 @@
-﻿using System.Globalization;
-using System.Text;
+﻿using System.Text;
 using Catness.Clients;
-using Catness.Enums;
 using Catness.Exceptions;
 using Catness.Extensions;
 using Catness.Models.Lastfm;
-using Catness.Persistence.Models;
 using Catness.Services;
 using Catness.Services.EntityFramework;
 using Discord;
 using Discord.Interactions;
 using Fergun.Interactive;
-using NodaTime.TimeZones;
 using TimeZoneNames;
 using User = Catness.Persistence.Models.User;
 

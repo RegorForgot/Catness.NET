@@ -15,11 +15,9 @@ public class BotHandler
     private readonly InteractionService _interactionService;
     private readonly IServiceProvider _serviceProvider;
     private readonly IEnumerable<ILogProvider> _logProviders;
+    private readonly IEnumerable<ITimedService> _timedServices;
     private readonly BotConfiguration _botConfiguration;
-    private readonly ReminderDispatchService _reminderDispatchService;
-    private readonly StatusService _statusService;
     private readonly UserHandler _userHandler;
-    private readonly BirthdayService _birthdayService;
 
     private bool _isPreviouslyReady;
 
@@ -29,21 +27,17 @@ public class BotHandler
         IServiceProvider serviceProvider,
         IEnumerable<ILogProvider> logProviders,
         IOptions<BotConfiguration> botConfiguration,
-        ReminderDispatchService reminderDispatchService,
-        StatusService statusService,
-        UserHandler userHandler,
-        BirthdayService birthdayService
+        IEnumerable<ITimedService> timedServices,
+        UserHandler userHandler
     )
     {
         _client = client;
         _interactionService = interactionService;
         _serviceProvider = serviceProvider;
         _logProviders = logProviders;
+        _timedServices = timedServices;
         _botConfiguration = botConfiguration.Value;
-        _reminderDispatchService = reminderDispatchService;
-        _statusService = statusService;
         _userHandler = userHandler;
-        _birthdayService = birthdayService;
     }
 
     public async Task OnBotStartup()
@@ -68,9 +62,10 @@ public class BotHandler
 
     private Task StartServices()
     {
-        Task.Run(_reminderDispatchService.Start);
-        Task.Run(_statusService.Start);
-        Task.Run(_birthdayService.Start);
+        foreach (ITimedService timedService in _timedServices)
+        {
+            Task.Run(timedService.Start);
+        }
         return Task.CompletedTask;
     }
 
@@ -96,9 +91,10 @@ public class BotHandler
 
     private Task OnDisconnected(Exception exception)
     {
-        Task.Run(_reminderDispatchService.Stop);
-        Task.Run(_statusService.Stop);
-        Task.Run(_birthdayService.Stop);
+        foreach (ITimedService timedService in _timedServices)
+        {
+            Task.Run(timedService.Stop);
+        }
         return Task.CompletedTask;
     }
 
