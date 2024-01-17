@@ -21,7 +21,7 @@ public static class MakesweetTemplateExtensions
             MakesweetTemplate.HeartLocket => "heart-locket",
             MakesweetTemplate.FlyingBear => "flying-bear",
             MakesweetTemplate.Flag => "flag",
-            MakesweetTemplate.BillboardCity => "billboard-city",
+            MakesweetTemplate.BillboardCity => "billboard-cityscape",
             MakesweetTemplate.NestingDoll => "nesting-doll",
             MakesweetTemplate.CircuitBoard => "circuit-board",
             _ => throw new ArgumentOutOfRangeException(nameof(template), template, null)

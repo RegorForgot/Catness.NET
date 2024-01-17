@@ -30,7 +30,7 @@ public class EmojiKitchenModule : InteractionModuleBase
                 return;
             }
 
-            bool success = _memoryCache.TryGetValue("emoji-kitchen", out List<EmojiCombination>? emojiCombinations);
+            bool success = _memoryCache.TryGetValue("emoji-kitchen", out HashSet<EmojiCombination>? emojiCombinations);
             if (success)
             {
                 string? url = emojiCombinations!

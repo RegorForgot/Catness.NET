@@ -1,4 +1,5 @@
-﻿using Catness.Models.EmojiKitchen;
+﻿using System.Runtime.Serialization.Formatters.Binary;
+using Catness.Models.EmojiKitchen;
 using Newtonsoft.Json;
 
 namespace Catness.IO;

@@ -41,10 +41,12 @@ public class BirthdayModule : InteractionModuleBase
             return;
         }
 
+        string dateFormat = date.Year == 1 ? date.ToString("M") : date.ToString("yyyy MMMM dd");
+
+        string response = user.Birthday is null ? $"Added birthday as {dateFormat}" : $"Updated birthday to {dateFormat}";
+
         user.Birthday = date;
         await _userService.UpdateUser(user);
-
-        string response = user.Birthday is null ? $"Added birthday as {date}" : $"Updated birthday to {date}";
 
         await RespondAsync(response);
     }
@@ -74,8 +76,12 @@ public class BirthdayModule : InteractionModuleBase
         }
         else
         {
+            DateOnly date = userDb.Birthday ?? DateOnly.FromDateTime(DateTime.Now);
+
+            string dateFormat = date.Year == 1 ? date.ToString("M") : date.ToString("yyyy MMMM dd");
+
             await RespondAsync(
-                $"{user.Id.GetPingString()}'s birthday is on {userDb.Birthday}!",
+                $"{user.Id.GetPingString()}'s birthday is on {dateFormat}!",
                 allowedMentions: AllowedMentions.None);
         }
     }

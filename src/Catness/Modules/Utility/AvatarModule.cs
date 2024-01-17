@@ -47,7 +47,7 @@ public class AvatarModule : InteractionModuleBase
             return await Context.Client.GetUserAsync(userId);
         }
 
-        return await guild.GetUserAsync(userId);
+        return await guild.GetUserAsync(userId) ?? await Context.Client.GetUserAsync(userId);
     }
 
     [SlashCommand("avatar", "Get a user's avatar")]
