@@ -1,17 +1,29 @@
 ﻿using Catness.Persistence;
 using Catness.Persistence.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Catness.Services.EntityFramework;
 
-public class GuildService
+public class GuildService : CachedEFService
 {
     private readonly IDbContextFactory<CatnessDbContext> _dbContextFactory;
 
     public GuildService(
-        IDbContextFactory<CatnessDbContext> dbContextFactory)
+        IDbContextFactory<CatnessDbContext> dbContextFactory,
+        IMemoryCache memoryCache) : base(memoryCache)
     {
         _dbContextFactory = dbContextFactory;
+    }
+    
+    public bool TryGetGuildFromCache(ulong guildId, out Guild? guild)
+    {
+        return _memoryCache.TryGetValue(GetGuildCacheKey(guildId), out guild);
+    }
+    
+    public void AddGuildToCache(Guild guild)
+    {
+        _memoryCache.Set(GetGuildCacheKey(guild.GuildId), guild, TimeSpan.FromMinutes(5));
     }
 
     public async Task<Guild> GetOrAddGuild(ulong guildId)
@@ -37,15 +49,28 @@ public class GuildService
 
         await context.Guilds.AddAsync(guild);
         await context.SaveChangesAsync();
+        AddGuildToCache(guild);
     }
 
     public async Task<Guild?> GetGuild(ulong guildId)
     {
+        if (TryGetGuildFromCache(guildId, out Guild? guild))
+        {
+            return guild;
+        }
+        
         await using CatnessDbContext context = await _dbContextFactory.CreateDbContextAsync();
 
-        return await context.Guilds
+        Guild? dbGuild = await context.Guilds
             .AsNoTracking()
             .FirstOrDefaultAsync(guild => guild.GuildId == guildId);
+        
+        if (dbGuild is not null)
+        {
+            AddGuildToCache(dbGuild);
+        }
+
+        return dbGuild;
     }
 
     public async Task<GuildUser> GetOrAddUserToGuild(User user, Guild guild)
@@ -100,5 +125,10 @@ public class GuildService
             .OrderByDescending(g => g.Level)
             .ThenByDescending(g => g.Experience)
             .ToListAsync();
+    }
+    
+    private static string GetGuildCacheKey(ulong guildId)
+    {
+        return $"guild-{guildId}";
     }
 }

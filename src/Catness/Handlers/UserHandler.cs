@@ -11,7 +11,6 @@ namespace Catness.Handlers;
 
 public class UserHandler
 {
-    private readonly DiscordSocketClient _client;
     private readonly IMemoryCache _cache;
     private readonly IDbContextFactory<CatnessDbContext> _dbContextFactory;
     private readonly GuildService _guildService;
@@ -19,15 +18,12 @@ public class UserHandler
     private readonly ChannelService _channelService;
     private readonly Random _random;
 
-    public UserHandler(
-        DiscordSocketClient client,
-        IMemoryCache cache,
+    public UserHandler(IMemoryCache cache,
         IDbContextFactory<CatnessDbContext> dbContextFactory,
         GuildService guildService,
         UserService userService,
         ChannelService channelService)
     {
-        _client = client;
         _cache = cache;
         _dbContextFactory = dbContextFactory;
         _guildService = guildService;
