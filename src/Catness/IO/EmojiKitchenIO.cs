@@ -10,7 +10,7 @@ public static class EmojiKitchenIO
 
     public static void WriteEmojis(HashSet<EmojiCombination> emojiCombinations)
     {
-        string dataJson = JsonConvert.SerializeObject(emojiCombinations, Formatting.Indented);
+        string dataJson = JsonConvert.SerializeObject(emojiCombinations, Formatting.None);
         File.WriteAllText(FileName, dataJson);
     }
 
